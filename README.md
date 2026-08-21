@@ -295,6 +295,8 @@ Fabiola). En un repositorio público eso queda expuesto.
 
 ## 9. Pasar a producción
 
+> Guía completa paso a paso para servidor propio: **[DESPLIEGUE.md](DESPLIEGUE.md)**
+
 1. `APP_ENV=production`, `APP_DEBUG=false` y `APP_URL` con el dominio real.
 2. Cambiar a MySQL en `.env` (`DB_CONNECTION=mysql` y credenciales) y correr
    `php artisan migrate --seed`.

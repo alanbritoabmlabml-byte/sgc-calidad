@@ -18,6 +18,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('login'));
+
+        // El certificado publico sigue respondiendo durante un despliegue.
+        // Un cliente que escanea el QR de un lote no tiene por que encontrarse
+        // con una pagina de mantenimiento.
+        $middleware->preventRequestsDuringMaintenance(except: [
+            'c/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

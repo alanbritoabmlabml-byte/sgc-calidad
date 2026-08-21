@@ -370,6 +370,39 @@ class FlujoInspeccionTest extends TestCase
         $this->assertNull($inspeccion->fresh()->published_at);
     }
 
+    /**
+     * Durante un despliegue el sistema entra en mantenimiento, pero el
+     * certificado del cliente tiene que seguir respondiendo: alguien puede
+     * estar escaneando el QR de un lote en ese momento.
+     */
+    public function test_el_certificado_sigue_accesible_en_modo_mantenimiento(): void
+    {
+        $lote = $this->crearLote();
+
+        $this->actingAs($this->calidad)
+            ->post(route('inspecciones.store', [$lote, $this->proceso('IT')]), [
+                'fecha' => '2026-08-13',
+                'm' => $this->medicionesTejido(),
+            ]);
+
+        $inspeccion = Inspection::latest('id')->firstOrFail();
+        $this->actingAs($this->calidad)->post(route('inspecciones.publicar', $inspeccion));
+
+        $token = $inspeccion->fresh()->public_token;
+
+        $this->artisan('down')->assertSuccessful();
+
+        try {
+            // El certificado responde.
+            $this->get(route('certificado', $token))->assertOk();
+
+            // El resto del sistema, no.
+            $this->get(route('login'))->assertServiceUnavailable();
+        } finally {
+            $this->artisan('up');
+        }
+    }
+
     public function test_la_hoja_de_etiquetas_incluye_un_qr_por_etiqueta(): void
     {
         $lote = $this->crearLote();
