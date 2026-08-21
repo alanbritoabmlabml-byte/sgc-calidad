@@ -27,26 +27,31 @@
 @section('contenido')
 
     @php
-        // El QR codifica APP_URL. Si apunta al equipo local, la etiqueta impresa
-        // no sirve: nadie fuera de esta maquina va a poder abrirla.
-        $host = parse_url(config('app.url'), PHP_URL_HOST) ?: '';
-        $urlLocal = in_array($host, ['localhost', '127.0.0.1', '::1'], true);
+        // El QR codifica APP_URL, y esa direccion queda impresa para siempre.
+        $motivo = \App\Support\UrlPublica::motivoParaNoImprimir();
     @endphp
 
-    @if ($urlLocal)
+    @if ($motivo)
         <div class="no-imprimir mb-4 rounded-lg bg-red-50 p-4 ring-1 ring-red-300">
             <p class="text-sm font-bold text-red-900">No imprimas estas etiquetas todavia</p>
             <p class="mt-1 text-sm text-red-800">
-                Los codigos QR apuntan a <code class="font-mono">{{ config('app.url') }}</code>, que es
-                este equipo. Una etiqueta impresa asi no se puede abrir desde otra computadora ni desde
-                el celular de un cliente.
+                Los codigos QR apuntan a <code class="font-mono">{{ \App\Support\UrlPublica::url() }}</code>,
+                que {{ $motivo }}.
             </p>
             <p class="mt-2 text-sm text-red-800">
-                Antes de imprimir en produccion, configura <code class="font-mono">APP_URL</code> en el
-                archivo <code class="font-mono">.env</code> con la direccion definitiva del sistema
-                (por ejemplo <code class="font-mono">https://calidad.plasticoscarmen.com</code>) y
-                ejecuta <code class="font-mono">php artisan config:clear</code>. Esa direccion queda
-                impresa para siempre en cada etiqueta.
+                Sirve para probar, no para produccion. Antes de imprimir etiquetas que van a salir de la
+                planta, configura <code class="font-mono">APP_URL</code> en el archivo
+                <code class="font-mono">.env</code> con la direccion definitiva
+                (por ejemplo <code class="font-mono">https://calidad.plasticoscarmen.com</code>) y ejecuta
+                <code class="font-mono">php artisan config:clear</code>.
+            </p>
+        </div>
+    @elseif (\App\Support\UrlPublica::esSinCifrado())
+        <div class="no-imprimir mb-4 rounded-lg bg-amber-50 p-4 ring-1 ring-amber-300">
+            <p class="text-sm font-bold text-amber-900">La direccion del QR no usa HTTPS</p>
+            <p class="mt-1 text-sm text-amber-800">
+                <code class="font-mono">{{ \App\Support\UrlPublica::url() }}</code> es http, no https.
+                El celular del cliente va a mostrar una advertencia de seguridad al abrir el certificado.
             </p>
         </div>
     @endif
