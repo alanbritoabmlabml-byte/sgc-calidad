@@ -1,0 +1,141 @@
+@import 'tailwindcss';
+
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+
+    /* Azul institucional del logo de Plasticos Carmen */
+    --color-pc-50: #eef6fb;
+    --color-pc-100: #d6e9f5;
+    --color-pc-200: #b0d4ec;
+    --color-pc-300: #7db7de;
+    --color-pc-400: #4794ca;
+    --color-pc-500: #2a78b2;
+    --color-pc-600: #1f5f96;
+    --color-pc-700: #1b4d7a;
+    --color-pc-800: #1a4265;
+    --color-pc-900: #193855;
+}
+
+/* Campos de formulario: alto comodo para usar con el dedo en tablet y celular. */
+@layer components {
+    .campo {
+        @apply block w-full rounded-lg border-0 py-2.5 px-3 text-slate-900 shadow-sm
+               ring-1 ring-inset ring-slate-300 placeholder:text-slate-400
+               focus:ring-2 focus:ring-inset focus:ring-pc-500
+               disabled:bg-slate-50 disabled:text-slate-500 sm:text-sm;
+    }
+
+    .etiqueta {
+        @apply block text-sm font-medium text-slate-700 mb-1;
+    }
+
+    /*
+     * Tailwind 4 solo admite utilidades reales dentro de @apply, no clases
+     * propias. Por eso la base de los botones se declara una sola vez para
+     * todas las variantes, en lugar de que cada una haga @apply btn.
+     */
+    .btn,
+    .btn-primario,
+    .btn-secundario,
+    .btn-peligro {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5
+               text-sm font-semibold shadow-sm transition
+               focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2;
+    }
+
+    .btn-primario {
+        @apply bg-pc-600 text-white hover:bg-pc-700 focus-visible:outline-pc-600;
+    }
+
+    .btn-secundario {
+        @apply bg-white text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50;
+    }
+
+    .btn-peligro {
+        @apply bg-red-600 text-white hover:bg-red-700 focus-visible:outline-red-600;
+    }
+
+    .tarjeta {
+        @apply rounded-xl bg-white shadow-sm ring-1 ring-slate-200;
+    }
+
+    .badge {
+        @apply inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold ring-1 ring-inset;
+    }
+
+    /* Celda de medicion fuera de especificacion. */
+    .fuera-spec {
+        @apply bg-red-50 text-red-700 ring-1 ring-red-300;
+    }
+
+    .dentro-spec {
+        @apply bg-emerald-50 text-emerald-700;
+    }
+}
+
+/*
+ * Impresion. Dos formatos:
+ *  - .hoja-a4      boleta / certificado de calidad en A4 vertical
+ *  - .hoja-etiquetas  planilla de etiquetas QR autoadhesivas
+ * Todo lo que tenga .no-imprimir desaparece al imprimir.
+ */
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 10mm;
+    }
+
+    html,
+    body {
+        background: #fff !important;
+        margin: 0;
+        padding: 0;
+    }
+
+    .no-imprimir {
+        display: none !important;
+    }
+
+    .solo-imprimir {
+        display: block !important;
+    }
+
+    .hoja-a4 {
+        width: auto;
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        box-shadow: none !important;
+        border: 0 !important;
+    }
+
+    /* Que no se corte una etiqueta ni una fila de tabla entre dos paginas. */
+    .etiqueta-qr,
+    tr,
+    thead {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    /* Los colores de veredicto deben salir en el papel. */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
+
+.solo-imprimir {
+    display: none;
+}
+
+/* Evita que Alpine muestre por un instante lo que arranca oculto. */
+[x-cloak] {
+    display: none !important;
+}
