@@ -265,52 +265,59 @@ por rol.
 
 ---
 
-## 8. Hosting: por qué GitHub Pages no sirve acá
+## 8. Despliegue
 
-**GitHub Pages solo sirve archivos estáticos.** No ejecuta PHP ni tiene base de
-datos, así que no puede alojar este sistema. FinControl sí funciona ahí porque es
-React puro con Firebase como backend; Laravel necesita un servidor con PHP.
+**Infraestructura definida: servidor propio en planta, Windows Server con IIS.**
+Base MySQL, PHP por FastCGI y el certificado publicado hacia internet con
+Cloudflare Tunnel.
 
-GitHub sigue siendo el lugar correcto para el **repositorio del código**. Lo que
-tiene que cambiar es dónde corre la aplicación:
+> **Guía completa paso a paso: [DESPLIEGUE.md](DESPLIEGUE.md)**
 
-| Opción | Costo | Cuándo conviene |
-|---|---|---|
-| **Hosting propio de la empresa** (cPanel de `plasticoscarmen.com`) | Ya pagado | Si el plan incluye PHP 8.3+ y MySQL. Permite `calidad.plasticoscarmen.com`. **La primera a revisar.** |
-| Hosting compartido PHP nuevo | ~USD 3–5/mes | Si el plan actual no da PHP. Muy simple de administrar. |
-| Render / Railway | Gratis a ~USD 7/mes | Despliegue automático desde GitHub en cada push. El plan gratis apaga el servidor cuando no hay tráfico: mal para un QR que un cliente puede escanear en cualquier momento. |
-| Servidor propio en planta + túnel | Costo de infraestructura | Solo si Sistemas ya administra servidores y se puede publicar hacia afuera con HTTPS. |
+Resumen de lo indispensable:
 
-Lo que **no** funciona: GitHub Pages, y cualquier solución que no sea accesible
-desde internet — el certificado tiene que abrirse desde el celular de un cliente,
-fuera de la red de la empresa.
+1. IIS con el rol **CGI** y el módulo **URL Rewrite 2.1**. Sin URL Rewrite,
+   Laravel devuelve 404 en todas las rutas.
+2. PHP 8.3 o 8.4, build **Non-Thread-Safe (NTS)** x64, registrado como
+   controlador FastCGI.
+3. La raíz del sitio en IIS es la carpeta **`public`**, nunca la del proyecto:
+   si apuntás a la raíz, `.env` queda accesible por web con las credenciales de
+   la base. El `public\web.config` ya viene en el repositorio.
+4. Permisos de escritura para `IIS_IUSRS` en `storage` y `bootstrap\cache`.
+5. `APP_URL` con el dominio definitivo **antes de emitir la primera boleta**: esa
+   dirección queda impresa dentro de cada QR.
+6. Respaldo diario de la base por Task Scheduler, con una copia fuera del
+   servidor. Cada boleta emitida es el certificado de un producto ya vendido.
 
-### Nota sobre el repositorio
+Actualizaciones: `.\deploy.ps1` desde PowerShell como administrador.
 
-El repositorio conviene que sea **privado**. `DemoSeeder.php` contiene lecturas
-de producción reales y nombres de operadores (Moisés Góngora, Javier Pastedo,
-Fabiola). En un repositorio público eso queda expuesto.
+### Por qué no GitHub Pages
+
+GitHub Pages solo sirve archivos estáticos: no ejecuta PHP ni tiene base de
+datos. FinControl sí funciona ahí porque es React puro con Firebase como backend.
+GitHub queda como **repositorio del código**, en
+`alanbritoabmlabml-byte/sgc-calidad`, **privado** — `DemoSeeder.php` contiene
+lecturas de producción reales y nombres de operadores.
+
+### Ubicación del proyecto
+
+Vive en `C:\dev\sgc-calidad`, **fuera de OneDrive** a propósito. OneDrive marca
+las carpetas como `ReadOnly` y PHP interpreta que no puede escribir, además de
+sincronizar `vendor\` y el archivo de base de datos mientras se escribe, con
+riesgo de corrupción.
 
 ---
 
-## 9. Pasar a producción
+## 9. Notas de producción
 
-> Guía completa paso a paso para servidor propio: **[DESPLIEGUE.md](DESPLIEGUE.md)**
-
-1. `APP_ENV=production`, `APP_DEBUG=false` y `APP_URL` con el dominio real.
-2. Cambiar a MySQL en `.env` (`DB_CONNECTION=mysql` y credenciales) y correr
-   `php artisan migrate --seed`.
-3. Cambiar las contraseñas de los usuarios iniciales.
-4. `php artisan config:cache route:cache view:cache` y `npm run build`.
-5. Servir `public/` por HTTPS. El certificado va a manos de clientes: sin HTTPS
-   el navegador del cliente va a mostrar advertencias sobre el enlace del QR.
-6. Respaldo de la base: cada boleta emitida es un certificado de calidad de
-   producto vendido.
-
-> **Ubicacion.** El proyecto vive en `C:\dev\sgc-calidad`, **fuera de OneDrive** a propósito.
-> OneDrive marca las carpetas como `ReadOnly` y PHP interpreta que no puede
-> escribir, además de sincronizar `vendor/` y el archivo de base de datos
-> mientras se escribe, con riesgo de corrupción.
+- `APP_ENV=production` y `APP_DEBUG=false`.
+- Cambiar las contraseñas de los usuarios iniciales antes de dar acceso.
+- `php artisan config:cache route:cache view:cache` después de cada cambio de
+  configuración.
+- **HTTPS obligatorio.** El certificado va a manos de clientes: sin HTTPS el
+  navegador del cliente muestra advertencias al abrir el enlace del QR.
+- El certificado público queda excluido del modo mantenimiento
+  (`bootstrap/app.php`), así un cliente que escanea un QR durante un despliegue
+  no se encuentra con un error 503.
 
 ---
 
