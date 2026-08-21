@@ -82,7 +82,7 @@ class EspecificacionTest extends TestCase
     /** Tejido, tension minimo 60 kgf: sin techo superior. */
     public function test_tension_solo_exige_minimo(): void
     {
-        $tension = $this->parametro('IT', 'tension', 'U');
+        $tension = $this->parametro('IT', 'tension', 'Urdimbre');
 
         $this->assertSame([60.0, null], $tension->limites());
         $this->assertTrue($tension->evaluar(107.9));
@@ -93,7 +93,7 @@ class EspecificacionTest extends TestCase
     /** Tejido, elongacion 23 +- 5 (18 a 28). */
     public function test_elongacion_usa_objetivo_y_tolerancia_fija(): void
     {
-        $elongacion = $this->parametro('IT', 'elongacion', 'T');
+        $elongacion = $this->parametro('IT', 'elongacion', 'Trama');
 
         $this->assertSame([18.0, 28.0], $elongacion->limites());
         $this->assertTrue($elongacion->evaluar(19.44));
@@ -147,7 +147,7 @@ class EspecificacionTest extends TestCase
     /** Un parametro sin especificacion nunca marca fuera de rango. */
     public function test_parametro_libre_no_emite_veredicto(): void
     {
-        $densidad = $this->parametro('IT', 'densidad', 'T');
+        $densidad = $this->parametro('IT', 'densidad', 'Trama');
 
         $this->assertSame(TestParameter::MODO_LIBRE, $densidad->spec_modo);
         $this->assertNull($densidad->evaluar(34));

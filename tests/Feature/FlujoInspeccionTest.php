@@ -77,13 +77,13 @@ class FlujoInspeccionTest extends TestCase
         $valores = array_merge([
             'gramaje' => 62,
             'ancho' => 65.5,
-            'densidad|T' => 34,
-            'densidad|U' => 39,
+            'densidad|Trama' => 34,
+            'densidad|Urdimbre' => 39,
             'peso_muestra' => 96.2,
-            'tension|T' => 72.52,
-            'tension|U' => 94.13,
-            'elongacion|T' => 20.16,
-            'elongacion|U' => 23,
+            'tension|Trama' => 72.52,
+            'tension|Urdimbre' => 94.13,
+            'elongacion|Trama' => 20.16,
+            'elongacion|Urdimbre' => 23,
         ], $sobreescribir);
 
         $m = [];

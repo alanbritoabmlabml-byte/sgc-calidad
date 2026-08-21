@@ -13,15 +13,38 @@ class Process extends Model
     use HasFactory;
 
     protected $fillable = [
-        'sector_id', 'code', 'name', 'boleta_code', 'orden', 'bloquea_siguiente', 'active',
+        'sector_id', 'code', 'name', 'boleta_code', 'etiquetas',
+        'orden', 'bloquea_siguiente', 'active',
     ];
 
     protected function casts(): array
     {
         return [
+            'etiquetas' => 'array',
             'bloquea_siguiente' => 'boolean',
             'active' => 'boolean',
         ];
+    }
+
+    /**
+     * Rotulo de un campo de la boleta impresa, con el texto del formulario
+     * preimpreso del proceso. Si no se cargo uno, cae al texto generico.
+     */
+    public function etiqueta(string $clave, string $defecto): string
+    {
+        return $this->etiquetas[$clave] ?? $defecto;
+    }
+
+    /** Titulo de la boleta: "INSPECCION DE TEJIDO (IT)". */
+    public function tituloBoleta(): string
+    {
+        return $this->etiqueta('titulo', 'Inspeccion de '.$this->name);
+    }
+
+    /** Titulo del recuadro de veredicto: "ESTADO DE INSPECCION DE TEJIDO". */
+    public function tituloEstado(): string
+    {
+        return $this->etiqueta('titulo_estado', 'Estado de inspeccion');
     }
 
     public function sector(): BelongsTo

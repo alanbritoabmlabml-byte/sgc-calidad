@@ -58,13 +58,13 @@ class DemoSeeder extends Seeder
             $this->mediciones($inspeccion, [
                 'gramaje' => [$fila[5]],
                 'ancho' => [$fila[6]],
-                'densidad|T' => [$fila[7]],
-                'densidad|U' => [$fila[8]],
+                'densidad|Trama' => [$fila[7]],
+                'densidad|Urdimbre' => [$fila[8]],
                 'peso_muestra' => [$fila[9]],
-                'tension|T' => [$fila[10]],
-                'tension|U' => [$fila[11]],
-                'elongacion|T' => [$fila[12]],
-                'elongacion|U' => [$fila[13]],
+                'tension|Trama' => [$fila[10]],
+                'tension|Urdimbre' => [$fila[11]],
+                'elongacion|Trama' => [$fila[12]],
+                'elongacion|Urdimbre' => [$fila[13]],
             ]);
 
             $inspeccion->update(['published_at' => now()]);

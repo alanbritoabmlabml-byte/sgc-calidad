@@ -265,7 +265,35 @@ por rol.
 
 ---
 
-## 8. Pasar a producción
+## 8. Hosting: por qué GitHub Pages no sirve acá
+
+**GitHub Pages solo sirve archivos estáticos.** No ejecuta PHP ni tiene base de
+datos, así que no puede alojar este sistema. FinControl sí funciona ahí porque es
+React puro con Firebase como backend; Laravel necesita un servidor con PHP.
+
+GitHub sigue siendo el lugar correcto para el **repositorio del código**. Lo que
+tiene que cambiar es dónde corre la aplicación:
+
+| Opción | Costo | Cuándo conviene |
+|---|---|---|
+| **Hosting propio de la empresa** (cPanel de `plasticoscarmen.com`) | Ya pagado | Si el plan incluye PHP 8.3+ y MySQL. Permite `calidad.plasticoscarmen.com`. **La primera a revisar.** |
+| Hosting compartido PHP nuevo | ~USD 3–5/mes | Si el plan actual no da PHP. Muy simple de administrar. |
+| Render / Railway | Gratis a ~USD 7/mes | Despliegue automático desde GitHub en cada push. El plan gratis apaga el servidor cuando no hay tráfico: mal para un QR que un cliente puede escanear en cualquier momento. |
+| Servidor propio en planta + túnel | Costo de infraestructura | Solo si Sistemas ya administra servidores y se puede publicar hacia afuera con HTTPS. |
+
+Lo que **no** funciona: GitHub Pages, y cualquier solución que no sea accesible
+desde internet — el certificado tiene que abrirse desde el celular de un cliente,
+fuera de la red de la empresa.
+
+### Nota sobre el repositorio
+
+El repositorio conviene que sea **privado**. `DemoSeeder.php` contiene lecturas
+de producción reales y nombres de operadores (Moisés Góngora, Javier Pastedo,
+Fabiola). En un repositorio público eso queda expuesto.
+
+---
+
+## 9. Pasar a producción
 
 1. `APP_ENV=production`, `APP_DEBUG=false` y `APP_URL` con el dominio real.
 2. Cambiar a MySQL en `.env` (`DB_CONNECTION=mysql` y credenciales) y correr
@@ -277,7 +305,30 @@ por rol.
 6. Respaldo de la base: cada boleta emitida es un certificado de calidad de
    producto vendido.
 
-> El proyecto vive en `C:\dev\sgc-calidad`, **fuera de OneDrive** a propósito.
+> **Ubicacion.** El proyecto vive en `C:\dev\sgc-calidad`, **fuera de OneDrive** a propósito.
 > OneDrive marca las carpetas como `ReadOnly` y PHP interpreta que no puede
 > escribir, además de sincronizar `vendor/` y el archivo de base de datos
 > mientras se escribe, con riesgo de corrupción.
+
+---
+
+## 10. La boleta replica el formulario en papel
+
+La boleta que imprime el sistema usa el mismo encabezado, los mismos rótulos y el
+mismo recuadro de estado que los formularios preimpresos COD.02 y COD.03:
+
+| Proceso | Título | Recuadro de estado | Código |
+|---|---|---|---|
+| Tejido | INSPECCION DE TEJIDO (IT) | ESTADO DE INSPECCION DE TEJIDO | COD.02 |
+| Corte y Costura | INSPECCION DE CORTE Y COSTURA (IC/C) | ESTADO DE INSPECCION DE BOLSAS | COD.03 |
+
+Los rótulos son **datos**, no código: viven en la columna `etiquetas` de cada
+proceso. Tejido imprime *"Fecha de corte de telar"* y *"Telar"*; Corte y Costura
+imprime *"Fecha de corte de rollo"*, *"Código de bolsa"* y *"Total de bolsas
+buenas"*. Para cambiar un rótulo se edita ese dato, sin tocar la vista.
+
+**Una diferencia respecto del papel, a propósito:** en el formulario impreso el
+recuadro "ESTADO DE INSPECCION" es una caja vacía que se completa a mano. En el
+sistema ese recuadro contiene el veredicto (`P.C` / `P.OBS` / `RECHAZADO`), la
+tabla de resultados con su especificación y la observación. Un certificado que va
+a un cliente necesita mostrar contra qué se midió, no solo el resultado.

@@ -50,29 +50,89 @@ class RafiaSeeder extends Seeder
      */
     private function procesos(Sector $sector): array
     {
+        // Solo Tejido y Corte y Costura son puertas de calidad del rollo.
+        // Extrusion se controla por bobina y por maquina, en su propio registro,
+        // no sobre el lote de tejido: por eso no bloquea. Impresion tampoco,
+        // porque no todos los productos se imprimen.
+        //
+        // Las etiquetas replican palabra por palabra los formularios preimpresos
+        // COD.02 y COD.03, para que la boleta del sistema se lea igual que la de papel.
         $definicion = [
-            // code, name, boleta, orden, bloquea el avance al siguiente
-            //
-            // Solo Tejido y Corte y Costura son puertas de calidad del rollo.
-            // Extrusion se controla por bobina y por maquina, en su propio
-            // registro, no sobre el lote de tejido: por eso no bloquea.
-            // Impresion tampoco, porque no todos los productos se imprimen.
-            ['EXT', 'Extrusion', null, 1, false],
-            ['IT', 'Tejido', 'COD.02', 2, true],
-            ['IMP', 'Impresion', null, 3, false],
-            ['ICC', 'Corte y Costura', 'COD.03', 4, true],
+            [
+                'code' => 'EXT', 'name' => 'Extrusion', 'boleta' => null,
+                'orden' => 1, 'bloquea' => false,
+                'etiquetas' => [
+                    'titulo' => 'INSPECCION DE EXTRUSION (IE)',
+                    'titulo_estado' => 'ESTADO DE INSPECCION DE CINTA',
+                    'fecha' => 'Fecha de extrusion',
+                    'producto' => 'Codigo',
+                    'maquina' => 'Extrusora',
+                    'peso' => 'Peso de bobina',
+                    'unidades' => 'Total de bobinas',
+                    'falladas' => 'Falladas',
+                    'buenas' => 'Total de bobinas buenas',
+                ],
+            ],
+            [
+                'code' => 'IT', 'name' => 'Tejido', 'boleta' => 'COD.02',
+                'orden' => 2, 'bloquea' => true,
+                'etiquetas' => [
+                    'titulo' => 'INSPECCION DE TEJIDO (IT)',
+                    'titulo_estado' => 'ESTADO DE INSPECCION DE TEJIDO',
+                    'fecha' => 'Fecha de corte de telar',
+                    'producto' => 'Codigo',
+                    'maquina' => 'Telar',
+                    'peso' => 'Peso del rollo',
+                    'tarjeta' => 'N. de Tarjeta',
+                    'unidades' => 'Total de rollos',
+                    'falladas' => 'Fallados',
+                    'buenas' => 'Total de rollos buenos',
+                ],
+            ],
+            [
+                'code' => 'IMP', 'name' => 'Impresion', 'boleta' => null,
+                'orden' => 3, 'bloquea' => false,
+                'etiquetas' => [
+                    'titulo' => 'INSPECCION DE IMPRESION (II)',
+                    'titulo_estado' => 'ESTADO DE INSPECCION DE IMPRESION',
+                    'fecha' => 'Fecha de impresion',
+                    'producto' => 'Codigo de bolsa',
+                    'maquina' => 'Maquina',
+                    'tarjeta' => 'N. de Rollo',
+                    'unidades' => 'Cantidad de bolsas',
+                    'falladas' => 'Falladas',
+                    'buenas' => 'Total de bolsas buenas',
+                ],
+            ],
+            [
+                'code' => 'ICC', 'name' => 'Corte y Costura', 'boleta' => 'COD.03',
+                'orden' => 4, 'bloquea' => true,
+                'etiquetas' => [
+                    'titulo' => 'INSPECCION DE CORTE Y COSTURA (IC/C)',
+                    'titulo_estado' => 'ESTADO DE INSPECCION DE BOLSAS',
+                    'fecha' => 'Fecha de corte de rollo',
+                    'producto' => 'Codigo de bolsa',
+                    'maquina' => 'Maquina',
+                    'peso' => 'Peso de rollo',
+                    'tarjeta' => 'N. de Tarjeta',
+                    'unidades' => 'Total de bolsas',
+                    'falladas' => 'Falladas',
+                    'buenas' => 'Total de bolsas buenas',
+                ],
+            ],
         ];
 
         $procesos = [];
 
-        foreach ($definicion as [$code, $name, $boleta, $orden, $bloquea]) {
-            $procesos[$code] = Process::updateOrCreate(
-                ['sector_id' => $sector->id, 'code' => $code],
+        foreach ($definicion as $p) {
+            $procesos[$p['code']] = Process::updateOrCreate(
+                ['sector_id' => $sector->id, 'code' => $p['code']],
                 [
-                    'name' => $name,
-                    'boleta_code' => $boleta,
-                    'orden' => $orden,
-                    'bloquea_siguiente' => $bloquea,
+                    'name' => $p['name'],
+                    'boleta_code' => $p['boleta'],
+                    'etiquetas' => $p['etiquetas'],
+                    'orden' => $p['orden'],
+                    'bloquea_siguiente' => $p['bloquea'],
                     'active' => true,
                 ]
             );
@@ -226,29 +286,29 @@ class RafiaSeeder extends Seeder
                 'spec_label' => '+/- 1',
             ],
             // Densidad de cintas: la boleta fisica COD.02 pide trama y urdimbre.
-            ['code' => 'densidad', 'label' => 'Densidad', 'unit' => 'cintas/10cm', 'grupo' => 'T', 'spec_modo' => TP::MODO_LIBRE],
-            ['code' => 'densidad', 'label' => 'Densidad', 'unit' => 'cintas/10cm', 'grupo' => 'U', 'spec_modo' => TP::MODO_LIBRE],
+            ['code' => 'densidad', 'label' => 'Densidad', 'unit' => 'cintas/10cm', 'grupo' => 'Trama', 'spec_modo' => TP::MODO_LIBRE],
+            ['code' => 'densidad', 'label' => 'Densidad', 'unit' => 'cintas/10cm', 'grupo' => 'Urdimbre', 'spec_modo' => TP::MODO_LIBRE],
 
             ['code' => 'peso_muestra', 'label' => 'Peso de muestra', 'unit' => 'g', 'spec_modo' => TP::MODO_LIBRE],
 
             [
-                'code' => 'tension', 'label' => 'Tension', 'unit' => 'kgf', 'grupo' => 'T',
+                'code' => 'tension', 'label' => 'Tension', 'unit' => 'kgf', 'grupo' => 'Trama',
                 'spec_modo' => TP::MODO_MINIMO, 'spec_min' => 60,
                 'spec_label' => 'minimo 60',
             ],
             [
-                'code' => 'tension', 'label' => 'Tension', 'unit' => 'kgf', 'grupo' => 'U',
+                'code' => 'tension', 'label' => 'Tension', 'unit' => 'kgf', 'grupo' => 'Urdimbre',
                 'spec_modo' => TP::MODO_MINIMO, 'spec_min' => 60,
                 'spec_label' => 'minimo 60',
             ],
             [
-                'code' => 'elongacion', 'label' => 'Elongacion', 'unit' => '%', 'grupo' => 'T',
+                'code' => 'elongacion', 'label' => 'Elongacion', 'unit' => '%', 'grupo' => 'Trama',
                 'spec_modo' => TP::MODO_OBJETIVO_TOL,
                 'spec_objetivo' => 23, 'spec_tolerancia' => 5,
                 'spec_label' => '23 +/- 5',
             ],
             [
-                'code' => 'elongacion', 'label' => 'Elongacion', 'unit' => '%', 'grupo' => 'U',
+                'code' => 'elongacion', 'label' => 'Elongacion', 'unit' => '%', 'grupo' => 'Urdimbre',
                 'spec_modo' => TP::MODO_OBJETIVO_TOL,
                 'spec_objetivo' => 23, 'spec_tolerancia' => 5,
                 'spec_label' => '23 +/- 5',

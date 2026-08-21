@@ -1,251 +1,277 @@
 {{--
     Boleta de inspeccion / certificado de calidad. Formato A4 vertical.
 
+    Replica el formulario preimpreso de Calidad (COD.02 para Tejido, COD.03 para
+    Corte y Costura): mismo encabezado, mismos rotulos y el recuadro grande de
+    "ESTADO DE INSPECCION". Los rotulos salen de process.etiquetas, asi que cada
+    proceso imprime con sus propias palabras sin tocar esta vista.
+
     Variables:
       $inspeccion, $resumen
       $publico  true  -> certificado para el cliente: oculta la observacion interna
-                          y las mediciones individuales, muestra el promedio y el veredicto.
+                          y las muestras individuales.
                 false -> boleta interna: muestra todo.
 --}}
 
 @php
     $publico = $publico ?? false;
     $lote = $inspeccion->lot;
+    $proceso = $inspeccion->process;
     $producto = $lote->product;
 
+    $numero = fn (?float $v, int $dec = 0): ?string => $v === null
+        ? null
+        : number_format($v, $dec, ',', '.');
+
     $colorEstado = match ($inspeccion->estado) {
-        \App\Models\Inspection::CONFORME => 'border-emerald-600 text-emerald-700',
-        \App\Models\Inspection::OBSERVADO => 'border-amber-600 text-amber-700',
-        \App\Models\Inspection::RECHAZADO => 'border-red-600 text-red-700',
-        default => 'border-slate-400 text-slate-600',
+        \App\Models\Inspection::CONFORME => 'border-emerald-600 bg-emerald-50 text-emerald-800',
+        \App\Models\Inspection::OBSERVADO => 'border-amber-600 bg-amber-50 text-amber-800',
+        \App\Models\Inspection::RECHAZADO => 'border-red-600 bg-red-50 text-red-800',
+        default => 'border-slate-400 bg-slate-50 text-slate-700',
+    };
+
+    $leyendaEstado = match ($inspeccion->estado) {
+        \App\Models\Inspection::CONFORME => 'Pasa conforme',
+        \App\Models\Inspection::OBSERVADO => 'Pasa con observacion',
+        \App\Models\Inspection::RECHAZADO => 'No conforme',
+        default => 'Pendiente de cierre',
     };
 @endphp
 
-<article class="hoja-a4 mx-auto max-w-[210mm] bg-white p-6 shadow-sm ring-1 ring-slate-200 print:ring-0 sm:p-8">
+<article class="hoja-a4 mx-auto max-w-[210mm] bg-white p-5 shadow-sm ring-1 ring-slate-200 print:ring-0 sm:p-7">
 
-    {{-- ===== Encabezado ===== --}}
-    <header class="flex items-start justify-between gap-4 border-b-2 border-pc-700 pb-4">
-        <div class="flex items-center gap-3">
-            <span class="grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-pc-700 text-xl font-extrabold text-white">
-                PC
-            </span>
-            <div>
-                <p class="text-base font-bold leading-tight text-slate-900">PLASTICOS CARMEN S.R.L.</p>
-                <p class="text-[11px] leading-tight text-slate-500">tecnologia en plasticos</p>
-                <p class="mt-1 text-[11px] leading-tight text-slate-500">Sector {{ $lote->sector->name }}</p>
+    {{-- ===== Encabezado, como la cabecera del formulario en papel ===== --}}
+    <header class="rounded-lg border-2 border-pc-700 p-3">
+        <div class="flex items-start justify-between gap-4">
+            <div class="flex items-center gap-2.5">
+                <span class="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-pc-700 text-lg font-extrabold text-white">
+                    PC
+                </span>
+                <div>
+                    <p class="text-sm font-bold leading-tight text-slate-900">PLASTICOS CARMEN</p>
+                    <p class="text-[9px] leading-tight tracking-wide text-slate-500">tecnologia en plasticos</p>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <h1 class="text-[13px] font-extrabold uppercase leading-tight text-pc-800 sm:text-sm">
+                    {{ $proceso->tituloBoleta() }}
+                </h1>
+                @if ($publico)
+                    <p class="text-[9px] font-bold uppercase tracking-wide text-pc-600">
+                        Certificado de calidad
+                    </p>
+                @endif
+                <p class="mt-1 font-mono text-base font-bold text-red-600">
+                    N&deg; {{ Str::afterLast($inspeccion->code, '-') }}
+                </p>
             </div>
         </div>
 
-        <div class="text-right">
-            <h1 class="text-sm font-bold uppercase leading-tight text-pc-800 sm:text-base">
-                @if ($publico)
-                    Certificado de calidad
-                @else
-                    Boleta de inspeccion
-                @endif
-            </h1>
-            <p class="text-xs font-semibold uppercase text-slate-600">{{ $inspeccion->process->name }}</p>
-            <p class="mt-1 font-mono text-lg font-bold text-red-600">{{ $inspeccion->code }}</p>
-            @if ($inspeccion->process->boleta_code)
-                <p class="text-[10px] text-slate-400">{{ $inspeccion->process->boleta_code }}</p>
-            @endif
-        </div>
-    </header>
+        {{-- ===== Identificacion, con los rotulos del formulario ===== --}}
+        <div class="mt-3 grid gap-x-5 gap-y-2 border-t border-slate-200 pt-3 sm:grid-cols-2 lg:grid-cols-3">
+            <x-campo-boleta :titulo="$proceso->etiqueta('fecha', 'Fecha')"
+                            :valor="$inspeccion->fecha->format('d/m/Y')" />
 
-    {{-- ===== Veredicto ===== --}}
-    <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border-2 {{ $colorEstado }} px-4 py-3">
-        <div>
-            <p class="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Estado de inspeccion</p>
-            <p class="text-xl font-extrabold uppercase leading-tight">
-                {{ $inspeccion->estado }}
-                <span class="text-sm font-semibold">
-                    @if ($inspeccion->estado === \App\Models\Inspection::CONFORME)
-                        &mdash; Pasa conforme
-                    @elseif ($inspeccion->estado === \App\Models\Inspection::OBSERVADO)
-                        &mdash; Pasa con observacion
-                    @elseif ($inspeccion->estado === \App\Models\Inspection::RECHAZADO)
-                        &mdash; No conforme
-                    @else
-                        &mdash; Pendiente de cierre
-                    @endif
-                </span>
-            </p>
-        </div>
+            <x-campo-boleta titulo="Hora"
+                            :valor="$inspeccion->hora ? substr($inspeccion->hora, 0, 5) : null" />
 
-        {{-- QR: en la boleta interna sirve para verificar que apunte bien. --}}
-        <div class="shrink-0 text-center">
-            {!! \App\Support\Qr::svg($inspeccion->urlPublica(), 76) !!}
-            <p class="mt-0.5 text-[8px] leading-none text-slate-400">verificar</p>
-        </div>
-    </div>
+            <x-campo-boleta :titulo="$proceso->etiqueta('maquina', 'Maquina')"
+                            :valor="$inspeccion->machine?->code" />
 
-    {{-- ===== Identificacion ===== --}}
-    <section class="mt-4">
-        <h2 class="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">Identificacion del lote</h2>
-        <dl class="grid grid-cols-2 gap-x-6 gap-y-1.5 text-xs sm:grid-cols-3">
-            <x-boleta-dato titulo="Lote" :valor="$lote->code" mono />
-            <x-boleta-dato titulo="Codigo de producto" :valor="$producto?->code" />
-            <x-boleta-dato titulo="N. de tarjeta / rollo" :valor="$lote->nro_tarjeta" />
-            <x-boleta-dato titulo="N. lote de produccion" :valor="$lote->nro_lote_produccion" />
-            <x-boleta-dato titulo="Fecha de inspeccion" :valor="$inspeccion->fecha->format('d/m/Y')" />
-            <x-boleta-dato titulo="Hora" :valor="$inspeccion->hora ? substr($inspeccion->hora, 0, 5) : null" />
-            <x-boleta-dato titulo="Maquina / telar" :valor="$inspeccion->machine?->code" />
-            <x-boleta-dato titulo="Turno" :valor="$inspeccion->turno" />
-            <x-boleta-dato titulo="Peso del rollo"
-                           :valor="$lote->peso_neto ? rtrim(rtrim(number_format((float) $lote->peso_neto, 3, ',', '.'), '0'), ',').' kg' : null" />
+            <x-campo-boleta :titulo="$proceso->etiqueta('producto', 'Codigo')"
+                            :valor="$producto?->code" />
 
+            <x-campo-boleta :titulo="$proceso->etiqueta('peso', 'Peso')"
+                            :valor="$lote->peso_neto ? $numero((float) $lote->peso_neto, 2).' kgrs' : null" />
+
+            <x-campo-boleta :titulo="$proceso->etiqueta('tarjeta', 'N. de Tarjeta')"
+                            :valor="$lote->nro_tarjeta" />
+
+            <x-campo-boleta titulo="Lote" :valor="$lote->code" mono />
+
+            <x-campo-boleta titulo="N. de Lote" :valor="$lote->nro_lote_produccion" />
+
+            <x-campo-boleta titulo="Turno" :valor="$inspeccion->turno" />
+
+            {{-- Cantidades: solo cuando el proceso las registra --}}
             @if ($inspeccion->total_unidades !== null)
-                <x-boleta-dato titulo="Total de unidades" :valor="number_format($inspeccion->total_unidades, 0, ',', '.')" />
-                <x-boleta-dato titulo="Unidades falladas"
-                               :valor="number_format((int) $inspeccion->total_falladas, 0, ',', '.').
-                                       ($inspeccion->porcentaje_falladas !== null ? ' ('.number_format($inspeccion->porcentaje_falladas, 2, ',', '.').'%)' : '')" />
-                <x-boleta-dato titulo="Unidades buenas" :valor="number_format((int) $inspeccion->total_buenas, 0, ',', '.')" />
+                <x-campo-boleta :titulo="$proceso->etiqueta('unidades', 'Total de unidades')"
+                                :valor="$numero($inspeccion->total_unidades)" />
+
+                <x-campo-boleta :titulo="$proceso->etiqueta('falladas', 'Falladas')"
+                                :valor="$numero((int) $inspeccion->total_falladas).
+                                    ($inspeccion->porcentaje_falladas !== null
+                                        ? ' ('.$numero($inspeccion->porcentaje_falladas, 2).'%)'
+                                        : '')" />
+
+                <x-campo-boleta :titulo="$proceso->etiqueta('buenas', 'Total buenas')"
+                                :valor="$numero((int) $inspeccion->total_buenas)" />
             @endif
 
             @if ($lote->sourceLot)
-                <x-boleta-dato titulo="Proviene del lote" :valor="$lote->sourceLot->code" mono />
+                <x-campo-boleta titulo="Proviene del lote" :valor="$lote->sourceLot->code" mono />
             @endif
-        </dl>
-    </section>
 
-    {{-- ===== Resultados ===== --}}
-    <section class="mt-5">
-        <h2 class="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
-            Resultados de ensayo
-            <span class="font-normal normal-case text-slate-400">
-                &middot; {{ $inspeccion->template->name }} (Rev:{{ $inspeccion->template->revision }})
-            </span>
+            <x-campo-boleta titulo="Nombre del Operador" :valor="$inspeccion->operador" ancho="full" />
+        </div>
+    </header>
+
+    {{-- ===== Estado de inspeccion: el recuadro grande del formulario ===== --}}
+    <section class="mt-4">
+        <h2 class="mb-1.5 text-center text-[13px] font-extrabold uppercase tracking-wide text-pc-800">
+            {{ $proceso->tituloEstado() }}
         </h2>
 
-        @php
-            // En el certificado del cliente se muestra el promedio y el veredicto.
-            // En la boleta interna, ademas, cada muestra individual.
-            $conMuestras = ! $publico && $resumen->contains(fn ($f) => $f['parametro']->muestras > 1);
-            $maxMuestras = (int) $resumen->max(fn ($f) => $f['valores']->max('muestra') ?? 0);
-        @endphp
+        <div class="rounded-lg border-2 {{ $colorEstado }} p-3">
 
-        <div class="overflow-x-auto">
-            <table class="w-full border-collapse text-[11px]">
-                <thead>
-                    <tr class="bg-slate-100 text-left">
-                        <th class="border border-slate-300 px-2 py-1.5 font-semibold">Caracteristica</th>
-                        <th class="border border-slate-300 px-2 py-1.5 font-semibold">Especificacion</th>
+            {{-- Veredicto y QR --}}
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <p class="text-xl font-extrabold uppercase leading-none">
+                    {{ $inspeccion->estado }}
+                    <span class="text-sm font-semibold">&mdash; {{ $leyendaEstado }}</span>
+                </p>
 
-                        @if ($conMuestras)
-                            @for ($n = 1; $n <= $maxMuestras; $n++)
-                                <th class="border border-slate-300 px-1 py-1.5 text-center font-semibold">M{{ $n }}</th>
-                            @endfor
-                        @endif
+                <div class="shrink-0 text-center">
+                    {!! \App\Support\Qr::svg($inspeccion->urlPublica(), 68) !!}
+                    <p class="mt-0.5 text-[7px] leading-none text-slate-500">
+                        {{ $publico ? 'verificar' : 'certificado' }}
+                    </p>
+                </div>
+            </div>
 
-                        <th class="border border-slate-300 px-2 py-1.5 text-center font-semibold">
-                            {{ $conMuestras || $maxMuestras > 1 ? 'Promedio' : 'Resultado' }}
-                        </th>
-                        <th class="border border-slate-300 px-2 py-1.5 text-center font-semibold">Veredicto</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($resumen as $fila)
-                        @php
-                            $p = $fila['parametro'];
-                            $valores = $fila['valores']->keyBy('muestra');
-                            // Cuando el parametro no promedia (texto o seleccion),
-                            // el resultado que se muestra es el primer valor cargado.
-                            $resultado = $fila['promedio'] !== null
-                                ? number_format($fila['promedio'], 2, ',', '.')
-                                : ($fila['valores']->first()?->valor ?? '-');
-                        @endphp
+            {{-- Resultados de ensayo --}}
+            @php
+                $conMuestras = ! $publico && $resumen->contains(fn ($f) => $f['parametro']->muestras > 1);
+                $maxMuestras = (int) $resumen->max(fn ($f) => $f['valores']->max('muestra') ?? 0);
+            @endphp
 
-                        <tr class="{{ $fila['veredicto'] === false ? 'bg-red-50' : '' }}">
-                            <th scope="row" class="border border-slate-300 px-2 py-1.5 text-left font-medium">
-                                {{ $p->etiqueta }}
-                            </th>
-                            <td class="border border-slate-300 px-2 py-1.5 text-slate-600">
-                                {{ $fila['spec'] }}
-                            </td>
+            <div class="mt-3 overflow-x-auto rounded bg-white/70">
+                <table class="w-full border-collapse text-[10px]">
+                    <thead>
+                        <tr class="bg-slate-100 text-left text-slate-700">
+                            <th class="border border-slate-300 px-2 py-1 font-semibold">Caracteristica</th>
+                            <th class="border border-slate-300 px-2 py-1 font-semibold">Especificacion</th>
 
                             @if ($conMuestras)
                                 @for ($n = 1; $n <= $maxMuestras; $n++)
-                                    @php $m = $valores->get($n); @endphp
-                                    <td @class([
-                                        'border border-slate-300 px-1 py-1.5 text-center',
-                                        'bg-red-100 font-semibold text-red-800' => $m?->en_especificacion === false,
-                                    ])>
-                                        {{ $m?->valor ?? '' }}
-                                    </td>
+                                    <th class="border border-slate-300 px-1 py-1 text-center font-semibold">M{{ $n }}</th>
                                 @endfor
                             @endif
 
-                            <td @class([
-                                'border border-slate-300 px-2 py-1.5 text-center font-bold',
-                                'text-red-700' => $fila['veredicto'] === false,
-                                'text-emerald-700' => $fila['veredicto'] === true,
-                            ])>
-                                {{ $resultado }}
-                            </td>
+                            <th class="border border-slate-300 px-2 py-1 text-center font-semibold">
+                                {{ $maxMuestras > 1 ? 'Promedio' : 'Resultado' }}
+                            </th>
+                            <th class="border border-slate-300 px-2 py-1 text-center font-semibold">Veredicto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($resumen as $fila)
+                            @php
+                                $p = $fila['parametro'];
+                                $valores = $fila['valores']->keyBy('muestra');
+                                $resultado = $fila['promedio'] !== null
+                                    ? $numero($fila['promedio'], 2)
+                                    : ($fila['valores']->first()?->valor ?? '');
+                            @endphp
 
-                            <td class="border border-slate-300 px-2 py-1.5 text-center">
-                                @if ($fila['veredicto'] === true)
-                                    <span class="font-semibold text-emerald-700">Conforme</span>
-                                @elseif ($fila['veredicto'] === false)
-                                    <span class="font-semibold text-red-700">Fuera de spec.</span>
-                                @else
-                                    <span class="text-slate-400">Sin evaluar</span>
+                            <tr class="{{ $fila['veredicto'] === false ? 'bg-red-50' : 'bg-white' }}">
+                                <th scope="row" class="border border-slate-300 px-2 py-1 text-left font-medium text-slate-800">
+                                    {{ $p->etiqueta }}
+                                </th>
+                                <td class="border border-slate-300 px-2 py-1 text-slate-600">{{ $fila['spec'] }}</td>
+
+                                @if ($conMuestras)
+                                    @for ($n = 1; $n <= $maxMuestras; $n++)
+                                        @php $m = $valores->get($n); @endphp
+                                        <td @class([
+                                            'border border-slate-300 px-1 py-1 text-center',
+                                            'bg-red-100 font-semibold text-red-800' => $m?->en_especificacion === false,
+                                        ])>{{ $m?->valor ?? '' }}</td>
+                                    @endfor
                                 @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4" class="border border-slate-300 px-2 py-4 text-center text-slate-400">
-                                No hay mediciones registradas.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+
+                                <td @class([
+                                    'border border-slate-300 px-2 py-1 text-center font-bold',
+                                    'text-red-700' => $fila['veredicto'] === false,
+                                    'text-emerald-700' => $fila['veredicto'] === true,
+                                    'text-slate-700' => $fila['veredicto'] === null,
+                                ])>{{ $resultado }}</td>
+
+                                <td class="border border-slate-300 px-2 py-1 text-center">
+                                    @if ($fila['veredicto'] === true)
+                                        <span class="font-semibold text-emerald-700">Conforme</span>
+                                    @elseif ($fila['veredicto'] === false)
+                                        <span class="font-semibold text-red-700">Fuera de spec.</span>
+                                    @else
+                                        <span class="text-slate-400">Sin evaluar</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="border border-slate-300 bg-white px-2 py-4 text-center text-slate-400">
+                                    Sin mediciones registradas.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="mt-1 text-[8px] text-slate-500">
+                Ensayo segun {{ $inspeccion->template->name }} (Rev:{{ $inspeccion->template->revision }})
+            </p>
+
+            {{-- Observacion --}}
+            <div class="mt-2">
+                <p class="text-[9px] font-bold uppercase tracking-wide text-slate-600">Observacion</p>
+                <p class="min-h-[2rem] rounded border border-slate-300 bg-white/70 p-1.5 text-[10px] text-slate-800">
+                    {{ $inspeccion->observacion ?: '' }}
+                </p>
+            </div>
         </div>
     </section>
 
-    {{-- ===== Observaciones ===== --}}
-    <section class="mt-5 grid gap-3 {{ $publico ? '' : 'sm:grid-cols-2' }}">
-        <div>
-            <h2 class="mb-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">Observaciones</h2>
-            <div class="min-h-[3.5rem] rounded border border-slate-300 p-2 text-[11px] text-slate-700">
-                {{ $inspeccion->observacion ?: '-' }}
-            </div>
-        </div>
-
-        @unless ($publico)
-            <div>
-                <h2 class="mb-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                    Observacion interna
-                    <span class="font-normal normal-case text-slate-400">(no sale en el certificado)</span>
-                </h2>
-                <div class="min-h-[3.5rem] rounded border border-dashed border-slate-300 bg-slate-50 p-2 text-[11px] text-slate-700">
-                    {{ $inspeccion->observacion_interna ?: '-' }}
-                </div>
-            </div>
-        @endunless
-    </section>
+    {{-- Observacion interna: nunca en el certificado del cliente --}}
+    @unless ($publico)
+        <section class="mt-3">
+            <p class="text-[9px] font-bold uppercase tracking-wide text-slate-500">
+                Observacion interna
+                <span class="font-normal normal-case text-slate-400">&middot; no sale en el certificado del cliente</span>
+            </p>
+            <p class="min-h-[2rem] rounded border border-dashed border-slate-300 bg-slate-50 p-1.5 text-[10px] text-slate-700">
+                {{ $inspeccion->observacion_interna ?: '' }}
+            </p>
+        </section>
+    @endunless
 
     {{-- ===== Firmas ===== --}}
-    <footer class="mt-6 grid grid-cols-2 gap-8 text-[11px]">
-        <div>
-            <div class="h-9 border-b border-slate-400"></div>
-            <p class="mt-1 font-semibold text-slate-700">{{ $inspeccion->operador ?: '' }}</p>
-            <p class="text-slate-500">Operador</p>
+    <footer class="mt-6 flex items-end justify-between gap-6 text-[10px]">
+        <div class="grid flex-1 grid-cols-2 gap-8">
+            <div>
+                <div class="h-8 border-b border-slate-500"></div>
+                <p class="mt-1 font-semibold text-slate-800">{{ $inspeccion->operador ?: '' }}</p>
+                <p class="text-slate-500">Operador</p>
+            </div>
+            <div>
+                <div class="h-8 border-b border-slate-500"></div>
+                <p class="mt-1 font-semibold text-slate-800">{{ $inspeccion->responsable ?: '' }}</p>
+                <p class="text-slate-500">Responsable de Control de Calidad</p>
+            </div>
         </div>
-        <div>
-            <div class="h-9 border-b border-slate-400"></div>
-            <p class="mt-1 font-semibold text-slate-700">{{ $inspeccion->responsable ?: '' }}</p>
-            <p class="text-slate-500">Responsable de Control de Calidad</p>
-        </div>
+
+        {{-- Codigo del formulario, como en el pie del papel --}}
+        @if ($proceso->boleta_code)
+            <p class="shrink-0 text-[10px] font-bold text-slate-600">{{ $proceso->boleta_code }}</p>
+        @endif
     </footer>
 
-    <div class="mt-5 border-t border-slate-200 pt-2 text-[9px] leading-relaxed text-slate-400">
+    <div class="mt-4 border-t border-slate-200 pt-1.5 text-[8px] leading-relaxed text-slate-400">
         <p>
-            Documento generado por el sistema de gestion de calidad de Plasticos Carmen S.R.L.
+            Plasticos Carmen S.R.L. &middot; Sector {{ $lote->sector->name }} &middot; Control de Calidad.
             @if ($inspeccion->published_at)
-                Emitido el {{ $inspeccion->published_at->format('d/m/Y H:i') }}.
+                Boleta emitida el {{ $inspeccion->published_at->format('d/m/Y H:i') }}.
             @endif
         </p>
         @if ($publico)
