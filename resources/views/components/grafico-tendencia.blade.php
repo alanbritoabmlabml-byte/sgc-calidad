@@ -79,7 +79,7 @@
                       stroke="#10b981" stroke-width="1" stroke-dasharray="4 3" opacity="0.6"/>
 
                 {{-- Linea de conformidad --}}
-                <polyline points="{{ $linea }}" fill="none" stroke="#0f3c91" stroke-width="2.5"
+                <polyline class="anim-trazo" points="{{ $linea }}" fill="none" stroke="#0f3c91" stroke-width="2.5"
                           stroke-linejoin="round" stroke-linecap="round"/>
 
                 {{-- Puntos --}}

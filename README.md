@@ -47,8 +47,9 @@ php artisan serve
 
 | Correo | Contraseña | Rol |
 |---|---|---|
-| `admin@plasticoscarmen.com` | `calidad2026` | Administrador |
-| `calidad@plasticoscarmen.com` | `calidad2026` | Control de Calidad |
+| `admin@plasticoscarmen.com` | `PC-Admin-2026` | Administrador |
+| `calidad@plasticoscarmen.com` | `PC-Calidad-2026` | Control de Calidad |
+| `gerencia@plasticoscarmen.com` | `PC-Gerencia-2026` | Gerencia |
 
 **Cambiá estas contraseñas antes de poner el sistema en producción.**
 
@@ -260,7 +261,7 @@ Piezas centrales:
 php artisan test
 ```
 
-33 pruebas, 122 aserciones. Cubren el motor de especificaciones contra lecturas
+83 pruebas, 279 aserciones. Cubren el motor de especificaciones contra lecturas
 reales de las planillas, el bloqueo entre procesos, la herencia de aprobación
 por lote de origen, la emisión de boletas, el aislamiento de la observación
 interna en el certificado del cliente, la generación de etiquetas y los permisos
@@ -355,10 +356,15 @@ Logo de Plásticos Carmen reconstruido en **SVG vectorial** y aplicado en login,
 barra superior, boleta, certificado y etiquetas. Paleta del sistema sobre los
 colores de la marca: azul `#0F3C91`, azul oscuro `#0B2A5E`, rojo `#E4121C`.
 
-> **Para usar el archivo oficial** en lugar de la reconstrucción, copiá el logo a
-> `public/img/logo-pc.svg` (o `.png`). El componente lo detecta y lo usa
-> automáticamente en todas las pantallas y en la boleta impresa. La versión con
-> el texto "PLÁSTICOS CARMEN" va en `public/img/logo-pc-completo.svg`.
+> **El logo oficial ya está instalado**: `public/img/logo-pc.png` (símbolo) y
+> `public/img/logo-pc-completo.png` (con el nombre). Se recortaron del archivo
+> corporativo que está en OneDrive, en
+> `Documentos / CarpetasSupervisorAlmacen / Letreros / logo_PC.png`.
+>
+> **Para tenerlo vectorial** —lo ideal para imprimir— exportá a SVG el kit
+> vectorial de `Analista de Datos / ClaudeIA / Documentos / kit-logo-pc.pdf`
+> y guardalo como `public/img/logo-pc.svg`. El componente prefiere el SVG sobre
+> el PNG automáticamente, sin tocar código.
 
 ### Permisos por módulo
 

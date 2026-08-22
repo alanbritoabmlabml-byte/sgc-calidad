@@ -36,7 +36,7 @@
     @endif
 
     {{-- Indicadores --}}
-    <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
+    <div class="anim-grilla grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         <x-kpi titulo="Inspecciones hoy" :valor="$inspeccionesHoy" />
         <x-kpi titulo="Conformidad 30d"
                :valor="$conformidad === null ? 'sin datos' : $conformidad . '%'"
@@ -89,7 +89,7 @@
                                 <th class="px-4 py-2 font-semibold"><span class="sr-only">Acciones</span></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
+                        <tbody class="anim-filas divide-y divide-slate-100">
                             @foreach ($ultimas as $i)
                                 <tr class="hover:bg-slate-50">
                                     <td class="px-4 py-2.5 font-mono text-xs font-semibold">
@@ -126,7 +126,7 @@
                 </div>
 
                 {{-- Lista en celular --}}
-                <ul class="divide-y divide-slate-100 sm:hidden">
+                <ul class="anim-filas divide-y divide-slate-100 sm:hidden">
                     @foreach ($ultimas as $i)
                         <li class="px-4 py-3">
                             <a href="{{ route('inspecciones.show', $i) }}" class="flex items-center justify-between gap-3">

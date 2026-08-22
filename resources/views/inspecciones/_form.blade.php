@@ -219,7 +219,7 @@
                                     <td class="px-1 py-2 align-top">
                                         @if ($p->tipo === 'select')
                                             <select :name="'m[{{ $p->id }}][' + n + ']'"
-                                                    class="w-16 rounded-md border-0 px-1 py-1.5 text-center text-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-pc-500"
+                                                    class="celda-medicion w-16 rounded-md border-0 px-1 py-1.5 text-center text-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-pc-500"
                                                     x-model="valores[{{ $p->id }}][n]"
                                                     :class="claseCelda({{ $p->id }}, valor({{ $p->id }}, n))">
                                                 <option value=""></option>
@@ -231,7 +231,7 @@
                                             <input :name="'m[{{ $p->id }}][' + n + ']'"
                                                    type="{{ $p->tipo === 'numeric' ? 'number' : 'text' }}"
                                                    @if ($p->tipo === 'numeric') step="0.01" inputmode="decimal" @endif
-                                                   class="w-20 rounded-md border-0 px-1.5 py-1.5 text-center text-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-pc-500"
+                                                   class="celda-medicion w-20 rounded-md border-0 px-1.5 py-1.5 text-center text-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-pc-500"
                                                    x-model="valores[{{ $p->id }}][n]"
                                                    :class="claseCelda({{ $p->id }}, valor({{ $p->id }}, n))">
                                         @endif

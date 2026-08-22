@@ -78,14 +78,16 @@
                         <a href="{{ route('avisos') }}"
                            class="relative rounded-lg p-2.5 text-pc-100 hover:bg-pc-600 hover:text-white"
                            title="{{ $cantidadAvisos > 0 ? $cantidadAvisos.' avisos' : 'Sin avisos' }}">
-                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                            {{-- La campana se mueve una sola vez, y solo si hay algo urgente --}}
+                            <svg @class(['h-5 w-5', 'anim-campana' => $avisosUrgentes > 0])
+                                 fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                       d="M14.857 17.082a24 24 0 0 0 5.454-1.31A8.97 8.97 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.97 8.97 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24 24 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/>
                             </svg>
                             @if ($cantidadAvisos > 0)
                                 <span @class([
                                     'absolute -right-0.5 -top-0.5 grid min-w-[1.15rem] place-items-center rounded-full px-1 text-[10px] font-bold text-white ring-2 ring-pc-700',
-                                    'bg-rojo-500' => $avisosUrgentes > 0,
+                                    'bg-rojo-500 anim-latido' => $avisosUrgentes > 0,
                                     'bg-amber-500' => $avisosUrgentes === 0,
                                 ])>{{ $cantidadAvisos > 99 ? '99+' : $cantidadAvisos }}</span>
                             @endif
@@ -171,7 +173,7 @@
     @endif
 
     {{-- ===== Contenido ===== --}}
-    <main class="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-6 lg:px-8">
+    <main class="anim-entrada mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-6 lg:px-8">
         <x-avisos />
         @yield('contenido')
     </main>

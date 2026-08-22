@@ -81,7 +81,7 @@
                             <th class="px-4 py-2.5 font-semibold">Estado</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody class="anim-filas divide-y divide-slate-100">
                         @foreach ($lotes as $lote)
                             <tr class="hover:bg-slate-50">
                                 <td class="whitespace-nowrap px-4 py-3">

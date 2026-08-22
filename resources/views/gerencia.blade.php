@@ -26,7 +26,7 @@
 @section('contenido')
 
     {{-- ===== Indicadores principales ===== --}}
-    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div class="anim-grilla grid grid-cols-2 gap-3 lg:grid-cols-4">
 
         {{-- Conformidad --}}
         <div class="tarjeta p-4">
@@ -109,7 +109,7 @@
             <div class="mt-3 flex h-6 overflow-hidden rounded-full bg-slate-100">
                 @foreach ($tramos as [$nombre, $cantidad, $fondo, $texto])
                     @if ($cantidad > 0)
-                        <div class="{{ $fondo }} flex items-center justify-center"
+                        <div class="anim-barra {{ $fondo }} flex items-center justify-center"
                              style="width: {{ round($cantidad / $resumen['total'] * 100, 2) }}%"
                              title="{{ $nombre }}: {{ $cantidad }}">
                             @if ($cantidad / $resumen['total'] > 0.08)

@@ -58,7 +58,7 @@
                         </span>
                     </div>
                     <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                        <div class="h-full rounded-full {{ $color }}" style="width: {{ $ancho }}%"></div>
+                        <div class="anim-barra h-full rounded-full {{ $color }}" style="width: {{ $ancho }}%"></div>
                     </div>
                 </div>
             @endforeach

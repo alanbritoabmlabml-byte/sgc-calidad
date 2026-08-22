@@ -96,6 +96,183 @@
 }
 
 /*
+ * ===========================================================================
+ * Animaciones
+ * ===========================================================================
+ * Criterio: movimiento corto y una sola vez, para dar sensacion de respuesta
+ * sin distraer. Este sistema se usa todo el dia en planta; una animacion que
+ * se repite o que tarda molesta al tercer uso.
+ *
+ * Dos apagados obligatorios, mas abajo:
+ *   - al imprimir, porque una transformacion a medio camino arruina la boleta
+ *   - si el sistema operativo pide menos movimiento (accesibilidad)
+ */
+
+@keyframes pc-aparecer {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes pc-fundido {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes pc-escala {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: none; }
+}
+
+/* Las barras de los graficos crecen desde la izquierda. */
+@keyframes pc-barra {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+/* La linea de tendencia se dibuja. */
+@keyframes pc-trazo {
+    from { stroke-dashoffset: 1200; }
+    to { stroke-dashoffset: 0; }
+}
+
+/* La campana llama la atencion una sola vez cuando hay algo urgente. */
+@keyframes pc-campana {
+    0%, 55%, 100% { transform: rotate(0); }
+    60% { transform: rotate(-11deg); }
+    70% { transform: rotate(9deg); }
+    80% { transform: rotate(-5deg); }
+    90% { transform: rotate(3deg); }
+}
+
+@keyframes pc-latido {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.12); }
+}
+
+@layer components {
+    /* --- Entrada del contenido de la pagina, en cascada --- */
+    .anim-entrada > * {
+        animation: pc-aparecer 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .anim-entrada > *:nth-child(1) { animation-delay: 0.02s; }
+    .anim-entrada > *:nth-child(2) { animation-delay: 0.07s; }
+    .anim-entrada > *:nth-child(3) { animation-delay: 0.12s; }
+    .anim-entrada > *:nth-child(4) { animation-delay: 0.17s; }
+    .anim-entrada > *:nth-child(n + 5) { animation-delay: 0.2s; }
+
+    /* --- Tarjetas dentro de una grilla, en cascada corta --- */
+    .anim-grilla > * {
+        animation: pc-escala 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .anim-grilla > *:nth-child(1) { animation-delay: 0.03s; }
+    .anim-grilla > *:nth-child(2) { animation-delay: 0.08s; }
+    .anim-grilla > *:nth-child(3) { animation-delay: 0.13s; }
+    .anim-grilla > *:nth-child(4) { animation-delay: 0.18s; }
+    .anim-grilla > *:nth-child(5) { animation-delay: 0.23s; }
+    .anim-grilla > *:nth-child(n + 6) { animation-delay: 0.26s; }
+
+    /* --- Filas de lista y de tabla, en cascada muy corta --- */
+    .anim-filas > * {
+        animation: pc-fundido 0.3s ease-out both;
+    }
+
+    .anim-filas > *:nth-child(1) { animation-delay: 0.02s; }
+    .anim-filas > *:nth-child(2) { animation-delay: 0.05s; }
+    .anim-filas > *:nth-child(3) { animation-delay: 0.08s; }
+    .anim-filas > *:nth-child(4) { animation-delay: 0.11s; }
+    .anim-filas > *:nth-child(5) { animation-delay: 0.14s; }
+    .anim-filas > *:nth-child(n + 6) { animation-delay: 0.16s; }
+
+    .anim-barra {
+        animation: pc-barra 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+        transform-origin: left center;
+    }
+
+    .anim-trazo {
+        stroke-dasharray: 1200;
+        animation: pc-trazo 1.1s ease-out 0.2s both;
+    }
+
+    .anim-campana {
+        animation: pc-campana 2.2s ease-in-out 0.6s;
+        transform-origin: top center;
+    }
+
+    .anim-latido {
+        animation: pc-latido 1.6s ease-in-out 3;
+    }
+
+    /* --- Interaccion --- */
+
+    /* Solo las tarjetas que son enlaces se levantan: si no es cliqueable,
+       moverla al pasar el mouse promete algo que no pasa. */
+    a.tarjeta,
+    .tarjeta-enlace {
+        transition:
+            box-shadow 0.2s ease,
+            transform 0.2s ease,
+            border-color 0.2s ease;
+    }
+
+    a.tarjeta:hover,
+    .tarjeta-enlace:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 22px -12px rgb(15 60 145 / 0.28);
+    }
+
+    a.tarjeta:active,
+    .tarjeta-enlace:active {
+        transform: translateY(0);
+    }
+
+    /* Los botones se hunden apenas al presionar: confirma el toque en tablet. */
+    .btn,
+    .btn-primario,
+    .btn-secundario,
+    .btn-peligro {
+        transition:
+            background-color 0.18s ease,
+            box-shadow 0.18s ease,
+            transform 0.1s ease;
+    }
+
+    .btn:active,
+    .btn-primario:active,
+    .btn-secundario:active,
+    .btn-peligro:active {
+        transform: scale(0.975);
+    }
+
+    .btn-primario:disabled,
+    .btn-secundario:disabled {
+        transform: none;
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+    /* Campos: el anillo de foco entra suave. */
+    .campo {
+        transition:
+            box-shadow 0.16s ease,
+            background-color 0.16s ease;
+    }
+
+    tbody tr {
+        transition: background-color 0.14s ease;
+    }
+
+    /* La celda de medicion avisa cuando el valor sale de especificacion. */
+    .celda-medicion {
+        transition:
+            box-shadow 0.18s ease,
+            background-color 0.18s ease,
+            color 0.18s ease;
+    }
+}
+
+/*
  * Impresion. Dos formatos:
  *  - .hoja-a4      boleta / certificado de calidad en A4 vertical
  *  - .hoja-etiquetas  planilla de etiquetas QR autoadhesivas
@@ -148,6 +325,20 @@
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
+
+    /*
+     * Sin animaciones al imprimir. Una animacion a medio camino sale congelada
+     * en el papel: una barra a la mitad o un bloque desplazado y translucido.
+     * La boleta y la etiqueta tienen que salir siempre iguales.
+     */
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+        opacity: 1 !important;
+    }
 }
 
 .solo-imprimir {
@@ -157,4 +348,31 @@
 /* Evita que Alpine muestre por un instante lo que arranca oculto. */
 [x-cloak] {
     display: none !important;
+}
+
+/*
+ * Apagado de animaciones cuando el sistema operativo pide menos movimiento.
+ * No es un detalle opcional: hay gente a la que el movimiento le causa mareo,
+ * y el sistema se usa varias horas por turno.
+ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .anim-entrada > *,
+    .anim-grilla > *,
+    .anim-filas > * {
+        animation-delay: 0s !important;
+    }
+
+    a.tarjeta:hover,
+    .tarjeta-enlace:hover {
+        transform: none;
+    }
 }

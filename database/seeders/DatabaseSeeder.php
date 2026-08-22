@@ -12,18 +12,21 @@ class DatabaseSeeder extends Seeder
     {
         // Un usuario por rol, con los permisos del preset correspondiente.
         // El administrador puede ajustarlos casilla por casilla despues.
+        //
+        // Estas son credenciales de instalacion: hay que cambiarlas antes de
+        // dar acceso a nadie, desde Configuracion > Usuarios.
         $usuarios = [
-            ['Administrador del Sistema', 'admin@plasticoscarmen.com', User::ADMIN],
-            ['Control de Calidad', 'calidad@plasticoscarmen.com', User::CALIDAD],
-            ['Gerencia', 'gerencia@plasticoscarmen.com', User::GERENCIA],
+            ['Administrador del Sistema', 'admin@plasticoscarmen.com', User::ADMIN, 'PC-Admin-2026'],
+            ['Control de Calidad', 'calidad@plasticoscarmen.com', User::CALIDAD, 'PC-Calidad-2026'],
+            ['Gerencia', 'gerencia@plasticoscarmen.com', User::GERENCIA, 'PC-Gerencia-2026'],
         ];
 
-        foreach ($usuarios as [$nombre, $correo, $rol]) {
+        foreach ($usuarios as [$nombre, $correo, $rol, $clave]) {
             User::updateOrCreate(
                 ['email' => $correo],
                 [
                     'name' => $nombre,
-                    'password' => 'calidad2026',
+                    'password' => $clave,
                     'role' => $rol,
                     'permissions' => Permisos::preset($rol),
                     'active' => true,

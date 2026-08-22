@@ -102,12 +102,26 @@
         <p class="mt-1 rounded bg-emerald-50 p-2 text-xs text-emerald-800" x-text="aviso"></p>
     </template>
 
-    {{-- Panel --}}
+    {{-- Panel. El fondo se funde y el panel sube: en celular aparece desde abajo,
+         que es de donde el pulgar lo espera. --}}
     <div x-show="abierto" x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
          class="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
          @keydown.escape.window="cerrar()">
 
         <div @click.outside="cerrar()"
+             x-show="abierto"
+             x-transition:enter="transition ease-out duration-250 delay-75"
+             x-transition:enter-start="opacity-0 translate-y-6 sm:translate-y-0 sm:scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
              class="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
 
             <h3 class="text-base font-semibold text-slate-900">

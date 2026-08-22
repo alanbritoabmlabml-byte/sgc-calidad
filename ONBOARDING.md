@@ -34,10 +34,11 @@ php artisan serve
 
 | Usuario | Contraseña | Rol |
 |---|---|---|
-| `admin@plasticoscarmen.com` | `calidad2026` | Administrador |
-| `calidad@plasticoscarmen.com` | `calidad2026` | Control de Calidad |
+| `admin@plasticoscarmen.com` | `PC-Admin-2026` | Administrador |
+| `calidad@plasticoscarmen.com` | `PC-Calidad-2026` | Control de Calidad |
+| `gerencia@plasticoscarmen.com` | `PC-Gerencia-2026` | Gerencia |
 
-Verificado: clon limpio desde GitHub → `composer setup` → **49 pruebas en verde**.
+Verificado: clon limpio desde GitHub → `composer setup` → **83 pruebas en verde**.
 
 ### Entorno en Windows
 
@@ -142,20 +143,29 @@ app/
     LotController, InspectionController      operación diaria
     CertificadoController                    vista pública del QR
     EtiquetaController                       hojas de etiquetas
-    DashboardController
-    Admin/  Plantilla, Parametro, Producto, Maquina, Usuario
+    DashboardController                      tablero de Calidad y avisos
+    GerenciaController                       tablero gerencial
+    Admin/  Plantilla, Parametro, Producto, Maquina, Sector, Usuario
   Http/Middleware/
-    PuedeEditar   admin + calidad
-    SoloAdmin     configuración
+    Permiso.php     autoriza por permiso ('permiso:inspecciones.emitir')
+  Rules/
+    NombrePersona, HoraNoFutura
   Support/
-    Qr.php          QR en SVG (vectorial, sin depender de GD)
-    UrlPublica.php  valida que APP_URL sirva para imprimir QR
+    Permisos.php        catálogo de permisos por módulo y presets por rol
+    Avisos.php          boletas sin emitir, lotes bloqueados, fichas incompletas
+    Qr.php              QR en SVG (vectorial, sin depender de GD)
+    UrlPublica.php      valida que APP_URL sirva para imprimir QR
+    FormatoEtiqueta.php formatos Zebra y personalizable
 
 resources/views/
+  components/logo.blade.php        marca; usa public/img/logo-pc.png si existe
+  components/modal-alta-rapida     alta de producto o sector sin cambiar pantalla
   inspecciones/_form.blade.php     grilla de muestras con evaluación en vivo
-  inspecciones/_boleta.blade.php   boleta A4, compartida con el certificado
+  inspecciones/_boleta.blade.php   boleta media carta, compartida con el certificado
   publico/certificado.blade.php    lo que ve el cliente
-  etiquetas/hoja.blade.php         hoja de etiquetas QR
+  etiquetas/hoja.blade.php         etiquetas QR, térmica Zebra y A4
+  gerencia.blade.php               tablero gerencial
+  avisos.blade.php                 pendientes del sistema
   admin/plantillas/                configuración de ensayos
 
 resources/js/app.js   componente Alpine grillaMediciones
@@ -345,7 +355,7 @@ php artisan tinker --execute='foreach (App\Models\Inspection::with("lot.product"
 php artisan test
 ```
 
-**49 pruebas, 174 aserciones.**
+**83 pruebas, 279 aserciones.**
 
 | Archivo | Cubre |
 |---|---|
