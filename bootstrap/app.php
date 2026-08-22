@@ -12,9 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // La autorizacion es por permiso, no por rol: un rol solo define el
+        // juego inicial de permisos de un usuario.
         $middleware->alias([
-            'editor' => \App\Http\Middleware\PuedeEditar::class,
-            'admin' => \App\Http\Middleware\SoloAdmin::class,
+            'permiso' => \App\Http\Middleware\Permiso::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('login'));

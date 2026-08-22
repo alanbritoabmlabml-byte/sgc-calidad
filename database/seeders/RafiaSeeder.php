@@ -61,6 +61,7 @@ class RafiaSeeder extends Seeder
             [
                 'code' => 'EXT', 'name' => 'Extrusion', 'boleta' => null,
                 'orden' => 1, 'bloquea' => false,
+                'cantidades' => false,
                 'etiquetas' => [
                     'titulo' => 'INSPECCION DE EXTRUSION (IE)',
                     'titulo_estado' => 'ESTADO DE INSPECCION DE CINTA',
@@ -76,6 +77,7 @@ class RafiaSeeder extends Seeder
             [
                 'code' => 'IT', 'name' => 'Tejido', 'boleta' => 'COD.02',
                 'orden' => 2, 'bloquea' => true,
+                'cantidades' => false,
                 'etiquetas' => [
                     'titulo' => 'INSPECCION DE TEJIDO (IT)',
                     'titulo_estado' => 'ESTADO DE INSPECCION DE TEJIDO',
@@ -92,6 +94,7 @@ class RafiaSeeder extends Seeder
             [
                 'code' => 'IMP', 'name' => 'Impresion', 'boleta' => null,
                 'orden' => 3, 'bloquea' => false,
+                'cantidades' => true,
                 'etiquetas' => [
                     'titulo' => 'INSPECCION DE IMPRESION (II)',
                     'titulo_estado' => 'ESTADO DE INSPECCION DE IMPRESION',
@@ -107,6 +110,7 @@ class RafiaSeeder extends Seeder
             [
                 'code' => 'ICC', 'name' => 'Corte y Costura', 'boleta' => 'COD.03',
                 'orden' => 4, 'bloquea' => true,
+                'cantidades' => true,
                 'etiquetas' => [
                     'titulo' => 'INSPECCION DE CORTE Y COSTURA (IC/C)',
                     'titulo_estado' => 'ESTADO DE INSPECCION DE BOLSAS',
@@ -133,6 +137,7 @@ class RafiaSeeder extends Seeder
                     'etiquetas' => $p['etiquetas'],
                     'orden' => $p['orden'],
                     'bloquea_siguiente' => $p['bloquea'],
+                    'requiere_cantidades' => $p['cantidades'],
                     'active' => true,
                 ]
             );

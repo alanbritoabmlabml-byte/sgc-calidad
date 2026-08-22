@@ -14,7 +14,7 @@ class Process extends Model
 
     protected $fillable = [
         'sector_id', 'code', 'name', 'boleta_code', 'etiquetas',
-        'orden', 'bloquea_siguiente', 'active',
+        'orden', 'bloquea_siguiente', 'requiere_cantidades', 'active',
     ];
 
     protected function casts(): array
@@ -22,6 +22,7 @@ class Process extends Model
         return [
             'etiquetas' => 'array',
             'bloquea_siguiente' => 'boolean',
+            'requiere_cantidades' => 'boolean',
             'active' => 'boolean',
         ];
     }

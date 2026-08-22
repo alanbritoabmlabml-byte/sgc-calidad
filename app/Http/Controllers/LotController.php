@@ -6,6 +6,7 @@ use App\Models\Lot;
 use App\Models\Machine;
 use App\Models\Product;
 use App\Models\Sector;
+use App\Rules\HoraNoFutura;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -137,8 +138,9 @@ class LotController extends Controller
             'machine_id' => ['nullable', 'exists:machines,id'],
             'nro_tarjeta' => ['nullable', 'string', 'max:50'],
             'nro_lote_produccion' => ['nullable', 'string', 'max:50'],
-            'fecha' => ['required', 'date'],
-            'hora' => ['nullable', 'date_format:H:i'],
+            // Un lote no puede tener fecha ni hora de corte en el futuro.
+            'fecha' => ['required', 'date', 'before_or_equal:today'],
+            'hora' => ['nullable', 'date_format:H:i', new HoraNoFutura($request->input('fecha'))],
             'turno' => ['nullable', Rule::in(['Dia', 'Noche'])],
             'peso_neto' => ['nullable', 'numeric', 'min:0', 'max:99999'],
             // Un lote no puede tener como origen a si mismo.
@@ -149,6 +151,7 @@ class LotController extends Controller
             ],
             'observacion' => ['nullable', 'string', 'max:2000'],
         ], [
+            'fecha.before_or_equal' => 'La fecha de corte no puede ser posterior a hoy.',
             'source_lot_id.not_in' => 'Un lote no puede ser su propio lote de origen.',
         ], [
             'sector_id' => 'sector',

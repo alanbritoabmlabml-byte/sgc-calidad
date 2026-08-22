@@ -24,7 +24,7 @@
             @if ($lote->inspections->contains(fn ($i) => $i->estaPublicada()))
                 <a href="{{ route('lotes.etiquetas', $lote) }}" class="btn-secundario">Etiquetas QR</a>
             @endif
-            @if (auth()->user()->puedeEditar())
+            @if (auth()->user()->puede('lotes.editar'))
                 <a href="{{ route('lotes.edit', $lote) }}" class="btn-secundario">Editar</a>
             @endif
         </div>
@@ -106,7 +106,7 @@
                                         <a href="{{ route('inspecciones.show', $inspeccion) }}" class="btn-secundario !px-3 !py-1.5 text-xs">
                                             Ver boleta
                                         </a>
-                                    @elseif (auth()->user()->puedeEditar() && $puerta['permitido'])
+                                    @elseif (auth()->user()->puede('inspecciones.crear') && $puerta['permitido'])
                                         <a href="{{ route('inspecciones.create', [$lote, $proceso]) }}"
                                            class="btn-primario !px-3 !py-1.5 text-xs">
                                             Inspeccionar

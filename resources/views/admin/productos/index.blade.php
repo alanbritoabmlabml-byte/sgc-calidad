@@ -10,7 +10,9 @@
                 Los valores nominales de cada codigo definen las tolerancias del ensayo.
             </p>
         </div>
-        <a href="{{ route('admin.productos.create') }}" class="btn-primario">Nuevo producto</a>
+        @if (auth()->user()->puede('productos.crear'))
+            <a href="{{ route('admin.productos.create') }}" class="btn-primario">Nuevo producto</a>
+        @endif
     </div>
 @endsection
 

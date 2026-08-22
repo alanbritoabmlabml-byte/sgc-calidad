@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Process;
-use App\Models\TestParameter;
 use App\Models\TestTemplate;
+use App\Support\Permisos;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +16,7 @@ class PlantillaController extends Controller
     public function index(): View
     {
         return view('admin.plantillas.index', [
-            'procesos' => Process::with(['sector', 'templates.parameters'])
+            'procesos' => Process::with(['sector', 'templates.parameters', 'templates.creador'])
                 ->orderBy('sector_id')
                 ->orderBy('orden')
                 ->get(),
@@ -34,20 +34,29 @@ class PlantillaController extends Controller
     {
         $datos = $this->validar($request);
 
-        $plantilla = TestTemplate::create([...$datos, 'active' => false]);
+        $plantilla = TestTemplate::create([
+            ...$datos,
+            'active' => false,
+            'created_by' => $request->user()->id,
+        ]);
 
         return redirect()
             ->route('admin.plantillas.show', $plantilla)
             ->with('ok', 'Plantilla creada. Agregale los parametros de ensayo y despues activala.');
     }
 
-    public function show(TestTemplate $plantilla): View
+    public function show(Request $request, TestTemplate $plantilla): View
     {
-        $plantilla->load(['process.sector', 'parameters']);
+        $plantilla->load(['process.sector', 'parameters.template', 'creador', 'activadaPor']);
 
         return view('admin.plantillas.show', [
             'plantilla' => $plantilla,
             'usos' => $plantilla->inspections()->count(),
+            // Calidad puede crear pero no modificar: la vista se adapta al permiso.
+            'puedeEditar' => $request->user()->puede(Permisos::PLANTILLAS_EDITAR),
+            'puedeEliminar' => $request->user()->puede(Permisos::PLANTILLAS_ELIMINAR),
+            'puedeCrear' => $request->user()->puede(Permisos::PLANTILLAS_CREAR),
+            'puedeActivar' => $request->user()->puede(Permisos::PLANTILLAS_ACTIVAR),
             'atributosProducto' => [
                 '' => 'No (valor fijo de la plantilla)',
                 'ancho_nominal' => 'Ancho nominal del producto',
@@ -66,15 +75,18 @@ class PlantillaController extends Controller
         return back()->with('ok', 'Plantilla actualizada.');
     }
 
-    public function activar(TestTemplate $plantilla): RedirectResponse
+    public function activar(Request $request, TestTemplate $plantilla): RedirectResponse
     {
         if ($plantilla->parameters()->count() === 0) {
             return back()->with('error', 'No se puede activar una plantilla sin parametros de ensayo.');
         }
 
-        $plantilla->activar();
+        $plantilla->activar($request->user());
 
-        return back()->with('ok', "Plantilla {$plantilla->nombre_completo} activada para {$plantilla->process->name}.");
+        return back()->with('ok',
+            "Plantilla {$plantilla->nombre_completo} activada para {$plantilla->process->name}. ".
+            'Las boletas ya emitidas conservan la revision con la que se llenaron.'
+        );
     }
 
     /**
@@ -82,9 +94,9 @@ class PlantillaController extends Controller
      * para cambiar una especificacion: las boletas ya emitidas siguen apuntando
      * a la revision con la que se llenaron.
      */
-    public function duplicar(TestTemplate $plantilla): RedirectResponse
+    public function duplicar(Request $request, TestTemplate $plantilla): RedirectResponse
     {
-        $copia = DB::transaction(function () use ($plantilla) {
+        $copia = DB::transaction(function () use ($plantilla, $request) {
             $siguiente = TestTemplate::where('process_id', $plantilla->process_id)->count() + 1;
 
             $copia = TestTemplate::create([
@@ -94,11 +106,13 @@ class PlantillaController extends Controller
                 'muestras_default' => $plantilla->muestras_default,
                 'muestras_max' => $plantilla->muestras_max,
                 'active' => false,
+                'created_by' => $request->user()->id,
             ]);
 
             foreach ($plantilla->parameters as $parametro) {
-                $nuevo = $parametro->replicate(['test_template_id']);
+                $nuevo = $parametro->replicate(['test_template_id', 'created_by']);
                 $nuevo->test_template_id = $copia->id;
+                $nuevo->created_by = $request->user()->id;
                 $nuevo->save();
             }
 

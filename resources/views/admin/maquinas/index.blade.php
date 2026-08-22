@@ -8,7 +8,9 @@
             <h1 class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">Maquinas</h1>
             <p class="mt-1 text-sm text-slate-500">Telares, extrusoras, impresoras y maquinas de corte y costura.</p>
         </div>
-        <a href="{{ route('admin.maquinas.create') }}" class="btn-primario">Nueva maquina</a>
+        @if (auth()->user()->puede('maquinas.gestionar'))
+            <a href="{{ route('admin.maquinas.create') }}" class="btn-primario">Nueva máquina</a>
+        @endif
     </div>
 @endsection
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Inspection;
 use App\Models\Lot;
 use App\Models\Sector;
+use App\Support\Avisos;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -48,6 +49,38 @@ class DashboardController extends Controller
                 ->where('estado', Lot::BLOQUEADO)
                 ->latest('fecha')
                 ->limit(5)
+                ->get(),
+
+            'avisos' => Avisos::todos(),
+        ]);
+    }
+
+    /** Pantalla completa de avisos, destino de la campana de la barra superior. */
+    public function avisos(): View
+    {
+        return view('avisos', [
+            'avisos' => Avisos::todos(),
+
+            // El caso central: inspecciones listas pero sin emitir. Mientras no
+            // se emitan, el QR de su etiqueta no resuelve el certificado.
+            'sinEmitir' => Inspection::with(['lot.product', 'process', 'machine', 'user'])
+                ->whereNull('published_at')
+                ->where('estado', '!=', Inspection::PENDIENTE)
+                ->orderBy('fecha')
+                ->limit(50)
+                ->get(),
+
+            'pendientes' => Inspection::with(['lot.product', 'process'])
+                ->where('estado', Inspection::PENDIENTE)
+                ->orderBy('fecha')
+                ->limit(50)
+                ->get(),
+
+            'lotesSinInspeccion' => Lot::with(['product', 'sector'])
+                ->whereDoesntHave('inspections')
+                ->where('estado', '!=', Lot::CERRADO)
+                ->orderBy('fecha')
+                ->limit(50)
                 ->get(),
         ]);
     }

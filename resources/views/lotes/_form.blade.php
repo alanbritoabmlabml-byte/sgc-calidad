@@ -15,7 +15,12 @@
 
         <div class="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
-                <label for="sector_id" class="etiqueta">Sector *</label>
+                <div class="flex items-baseline justify-between gap-2">
+                    <label for="sector_id" class="etiqueta">Sector *</label>
+                    @if (auth()->user()->puede(\App\Support\Permisos::SECTORES_GESTIONAR))
+                        <x-modal-alta-rapida tipo="sector" destino="sector_id" />
+                    @endif
+                </div>
                 <select id="sector_id" name="sector_id" class="campo" required>
                     @foreach ($sectores as $s)
                         <option value="{{ $s->id }}" @selected(old('sector_id', $lote->sector_id ?? $sector->id) == $s->id)>
@@ -25,13 +30,18 @@
                 </select>
                 @if (! $lote->exists)
                     <p class="mt-1 text-xs text-slate-400">
-                        El proximo codigo sera {{ \App\Models\Lot::generarCodigo($sector) }}
+                        El próximo código será {{ \App\Models\Lot::generarCodigo($sector) }}
                     </p>
                 @endif
             </div>
 
             <div>
-                <label for="product_id" class="etiqueta">Codigo de producto</label>
+                <div class="flex items-baseline justify-between gap-2">
+                    <label for="product_id" class="etiqueta">Código de producto</label>
+                    @if (auth()->user()->puede(\App\Support\Permisos::PRODUCTOS_CREAR))
+                        <x-modal-alta-rapida tipo="producto" destino="product_id" sectorDestino="sector_id" />
+                    @endif
+                </div>
                 <select id="product_id" name="product_id" class="campo">
                     <option value="">Sin definir</option>
                     @foreach ($productos as $p)
@@ -88,15 +98,19 @@
             <h2 class="text-sm font-semibold text-slate-900">Fecha y turno</h2>
 
             <div class="mt-4 space-y-4">
+                {{-- La fecha y la hora de corte no pueden estar en el futuro. El
+                     navegador ya lo limita con max; el servidor lo vuelve a validar. --}}
                 <div>
                     <label for="fecha" class="etiqueta">Fecha de corte *</label>
                     <input id="fecha" name="fecha" type="date" class="campo" required
+                           max="{{ now()->format('Y-m-d') }}"
                            value="{{ old('fecha', optional($lote->fecha)->format('Y-m-d') ?? now()->format('Y-m-d')) }}">
                 </div>
                 <div>
                     <label for="hora" class="etiqueta">Hora</label>
                     <input id="hora" name="hora" type="time" class="campo"
                            value="{{ old('hora', $lote->hora ? substr($lote->hora, 0, 5) : '') }}">
+                    <p class="mt-1 text-xs text-slate-400">No puede ser posterior a la hora actual.</p>
                 </div>
                 <div>
                     <label for="turno" class="etiqueta">Turno</label>

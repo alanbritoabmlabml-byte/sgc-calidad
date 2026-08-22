@@ -27,6 +27,18 @@ class Inspection extends Model
         self::RECHAZADO => 'Rechazado / No conforme',
     ];
 
+    /**
+     * Texto completo del estado, en mayusculas, para la etiqueta impresa y la
+     * boleta. En la etiqueta no sirve la abreviatura: quien la lee en planta o
+     * en el deposito del cliente tiene que entenderla sin conocer el codigo.
+     */
+    public const ESTADOS_COMPLETOS = [
+        self::PENDIENTE => 'PENDIENTE DE INSPECCION',
+        self::CONFORME => 'PRODUCTO CONFORME',
+        self::OBSERVADO => 'PRODUCTO CON OBSERVACION',
+        self::RECHAZADO => 'PRODUCTO NO CONFORME',
+    ];
+
     protected $fillable = [
         'code', 'lot_id', 'process_id', 'test_template_id',
         'fecha', 'hora', 'machine_id', 'operador', 'responsable', 'turno',
@@ -198,6 +210,87 @@ class Inspection extends Model
         return $algunoFuera ? self::OBSERVADO : self::CONFORME;
     }
 
+    /**
+     * Datos que faltan para poder emitir la boleta.
+     *
+     * Una boleta emitida es el certificado de calidad de un producto vendido:
+     * no puede salir con campos en blanco.
+     *
+     * Devuelve nombres de campo, no frases: el rotulo de la maquina cambia por
+     * proceso ("Telar", "Extrusora", "Maquina") y armar una frase con articulo
+     * daria concordancias equivocadas. Como lista de campos se lee igual de
+     * claro y no depende del genero de cada rotulo.
+     *
+     * @return array<int, string>
+     */
+    public function datosFaltantes(): array
+    {
+        $this->loadMissing('template.parameters', 'measurements', 'lot.product', 'process', 'machine');
+
+        $faltan = [];
+        $proceso = $this->process;
+
+        // ---- Cabecera de la boleta ----
+        if ($this->estado === self::PENDIENTE) {
+            $faltan[] = 'Estado de inspeccion (esta PENDIENTE)';
+        }
+
+        if (blank($this->hora)) {
+            $faltan[] = 'Hora';
+        }
+
+        if ($this->machine_id === null) {
+            $faltan[] = $proceso->etiqueta('maquina', 'Maquina');
+        }
+
+        if (blank($this->operador)) {
+            $faltan[] = 'Nombre del operador';
+        }
+
+        if (blank($this->responsable)) {
+            $faltan[] = 'Responsable de Control de Calidad';
+        }
+
+        // ---- Identificacion del lote ----
+        if ($this->lot->product_id === null) {
+            $faltan[] = 'Codigo de producto del lote';
+        }
+
+        if (blank($this->lot->nro_tarjeta)) {
+            $faltan[] = $proceso->etiqueta('tarjeta', 'N. de tarjeta').' del lote';
+        }
+
+        // ---- Cantidades, solo en los procesos que las llevan ----
+        if ($proceso->requiere_cantidades) {
+            if ($this->total_unidades === null) {
+                $faltan[] = $proceso->etiqueta('unidades', 'Total de unidades');
+            }
+
+            if ($this->total_falladas === null) {
+                $faltan[] = $proceso->etiqueta('falladas', 'Falladas');
+            }
+        }
+
+        // ---- Mediciones: cada caracteristica necesita al menos un valor ----
+        $conDato = $this->measurements
+            ->filter(fn (Measurement $m) => $m->valor_num !== null || filled($m->valor_texto))
+            ->pluck('test_parameter_id')
+            ->unique();
+
+        foreach ($this->template->parameters as $parametro) {
+            if (! $conDato->contains($parametro->id)) {
+                $faltan[] = 'Medicion de '.$parametro->etiqueta;
+            }
+        }
+
+        return $faltan;
+    }
+
+    public function puedeEmitirse(): bool
+    {
+        return $this->datosFaltantes() === [];
+    }
+
     public function estaPublicada(): bool
     {
         return $this->published_at !== null
@@ -210,12 +303,18 @@ class Inspection extends Model
         return route('certificado', $this->public_token);
     }
 
+    /** "PRODUCTO CONFORME" en lugar de "P.C". */
+    public function getEstadoCompletoAttribute(): string
+    {
+        return self::ESTADOS_COMPLETOS[$this->estado] ?? $this->estado;
+    }
+
     public function getBadgeColorAttribute(): string
     {
         return match ($this->estado) {
             self::CONFORME => 'bg-emerald-100 text-emerald-800 ring-emerald-600/20',
             self::OBSERVADO => 'bg-amber-100 text-amber-800 ring-amber-600/20',
-            self::RECHAZADO => 'bg-red-100 text-red-800 ring-red-600/20',
+            self::RECHAZADO => 'bg-rojo-100 text-rojo-800 ring-rojo-600/20',
             default => 'bg-slate-100 text-slate-700 ring-slate-600/20',
         };
     }

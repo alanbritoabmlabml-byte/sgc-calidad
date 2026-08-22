@@ -36,9 +36,11 @@
         </div>
 
         <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {{-- Una inspeccion no puede registrarse con fecha u hora futura. --}}
             <div>
                 <label for="fecha" class="etiqueta">Fecha *</label>
                 <input id="fecha" name="fecha" type="date" class="campo" required
+                       max="{{ now()->format('Y-m-d') }}"
                        value="{{ old('fecha', optional($inspeccion?->fecha)->format('Y-m-d') ?? optional($lote->fecha)->format('Y-m-d') ?? now()->format('Y-m-d')) }}">
             </div>
             <div>
@@ -69,12 +71,20 @@
             <div>
                 <label for="operador" class="etiqueta">Nombre del operador</label>
                 <input id="operador" name="operador" class="campo"
-                       value="{{ old('operador', $inspeccion?->operador) }}" placeholder="Ej. Moises Gongora">
+                       value="{{ old('operador', $inspeccion?->operador) }}" placeholder="Ej. Moisés Góngora">
+                <p class="mt-1 text-xs text-slate-400">Solo letras: no admite números ni símbolos.</p>
             </div>
             <div>
-                <label for="responsable" class="etiqueta">Responsable de calidad</label>
-                <input id="responsable" name="responsable" class="campo"
-                       value="{{ old('responsable', $inspeccion?->responsable ?? auth()->user()->name) }}">
+                <label class="etiqueta">Responsable de Control de Calidad</label>
+                {{-- No se elige: es siempre quien está cargando la inspección, para
+                     que la boleta no pueda atribuirse a otra persona. --}}
+                <div class="campo flex items-center justify-between gap-2 bg-slate-50 text-slate-700">
+                    <span class="truncate">{{ auth()->user()->nombre_completo }}</span>
+                    <span class="shrink-0 text-xs text-slate-400">automático</span>
+                </div>
+                <p class="mt-1 text-xs text-slate-400">
+                    Es el usuario con la sesión abierta. Se imprime como responsable en la boleta.
+                </p>
             </div>
 
             {{-- Cantidades: relevantes en Corte y Costura e Impresion --}}

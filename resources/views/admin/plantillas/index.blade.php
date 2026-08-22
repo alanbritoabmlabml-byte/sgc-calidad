@@ -10,7 +10,9 @@
                 Aca se define que se mide en cada proceso y con que tolerancia. Sin tocar codigo.
             </p>
         </div>
-        <a href="{{ route('admin.plantillas.create') }}" class="btn-primario">Nueva plantilla</a>
+        @if (auth()->user()->puede(\App\Support\Permisos::PLANTILLAS_CREAR))
+            <a href="{{ route('admin.plantillas.create') }}" class="btn-primario">Nueva plantilla</a>
+        @endif
     </div>
 @endsection
 

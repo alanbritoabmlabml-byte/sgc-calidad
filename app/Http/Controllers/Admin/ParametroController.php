@@ -16,6 +16,7 @@ class ParametroController extends Controller
         $datos = $this->validar($request, $plantilla);
 
         $datos['orden'] = (int) $plantilla->parameters()->max('orden') + 1;
+        $datos['created_by'] = $request->user()->id;
 
         $plantilla->parameters()->create($datos);
 

@@ -3,31 +3,33 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Support\Permisos;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        User::updateOrCreate(
-            ['email' => 'admin@plasticoscarmen.com'],
-            [
-                'name' => 'Administrador',
-                'password' => 'calidad2026',
-                'role' => User::ADMIN,
-                'active' => true,
-            ]
-        );
+        // Un usuario por rol, con los permisos del preset correspondiente.
+        // El administrador puede ajustarlos casilla por casilla despues.
+        $usuarios = [
+            ['Administrador del Sistema', 'admin@plasticoscarmen.com', User::ADMIN],
+            ['Control de Calidad', 'calidad@plasticoscarmen.com', User::CALIDAD],
+            ['Gerencia', 'gerencia@plasticoscarmen.com', User::GERENCIA],
+        ];
 
-        User::updateOrCreate(
-            ['email' => 'calidad@plasticoscarmen.com'],
-            [
-                'name' => 'Control de Calidad',
-                'password' => 'calidad2026',
-                'role' => User::CALIDAD,
-                'active' => true,
-            ]
-        );
+        foreach ($usuarios as [$nombre, $correo, $rol]) {
+            User::updateOrCreate(
+                ['email' => $correo],
+                [
+                    'name' => $nombre,
+                    'password' => 'calidad2026',
+                    'role' => $rol,
+                    'permissions' => Permisos::preset($rol),
+                    'active' => true,
+                ]
+            );
+        }
 
         $this->call(RafiaSeeder::class);
     }

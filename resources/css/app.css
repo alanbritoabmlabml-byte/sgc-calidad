@@ -6,17 +6,36 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
 
-    /* Azul institucional del logo de Plasticos Carmen */
-    --color-pc-50: #eef6fb;
-    --color-pc-100: #d6e9f5;
-    --color-pc-200: #b0d4ec;
-    --color-pc-300: #7db7de;
-    --color-pc-400: #4794ca;
-    --color-pc-500: #2a78b2;
-    --color-pc-600: #1f5f96;
-    --color-pc-700: #1b4d7a;
-    --color-pc-800: #1a4265;
-    --color-pc-900: #193855;
+    /*
+     * Colorimetria de la marca Plasticos Carmen.
+     *   azul  #0F3C91  (bowl de la "p")
+     *   azul oscuro #0B2A5E  (descendente de la "p")
+     *   rojo  #E4121C  (la "c" y el nombre)
+     * La escala se construye alrededor de esos dos valores, que son los tonos
+     * 700 del azul y 600 del rojo respectivamente.
+     */
+    --color-pc-50: #eef3fc;
+    --color-pc-100: #d9e4f8;
+    --color-pc-200: #b3c8f1;
+    --color-pc-300: #7fa2e4;
+    --color-pc-400: #4a78d1;
+    --color-pc-500: #2455b4;
+    --color-pc-600: #16469f;
+    --color-pc-700: #0f3c91;
+    --color-pc-800: #0d3277;
+    --color-pc-900: #0b2a5e;
+    --color-pc-950: #071c40;
+
+    --color-rojo-50: #fef2f2;
+    --color-rojo-100: #fde3e4;
+    --color-rojo-200: #fbcccd;
+    --color-rojo-300: #f79a9d;
+    --color-rojo-400: #f05f65;
+    --color-rojo-500: #e4121c;
+    --color-rojo-600: #cc0f18;
+    --color-rojo-700: #a90d14;
+    --color-rojo-800: #8b1014;
+    --color-rojo-900: #741317;
 }
 
 /* Campos de formulario: alto comodo para usar con el dedo en tablet y celular. */

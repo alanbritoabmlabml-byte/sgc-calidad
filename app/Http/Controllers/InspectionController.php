@@ -10,6 +10,8 @@ use App\Models\Process;
 use App\Models\Sector;
 use App\Models\TestParameter;
 use App\Models\TestTemplate;
+use App\Rules\HoraNoFutura;
+use App\Rules\NombrePersona;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -158,8 +160,14 @@ class InspectionController extends Controller
      */
     public function publicar(Inspection $inspeccion): RedirectResponse
     {
-        if ($inspeccion->estado === Inspection::PENDIENTE) {
-            return back()->with('error', 'Define primero el estado de inspeccion. Una boleta pendiente no se puede emitir.');
+        // Una boleta emitida es el certificado de calidad de un producto
+        // vendido: no puede salir con campos en blanco.
+        $faltan = $inspeccion->datosFaltantes();
+
+        if ($faltan !== []) {
+            return back()->with('error',
+                'No se puede emitir la boleta, faltan datos: '.implode('; ', $faltan).'.'
+            );
         }
 
         $inspeccion->update(['published_at' => now()]);
@@ -321,15 +329,15 @@ class InspectionController extends Controller
     /** @return array<string, mixed> */
     private function validar(Request $request, TestTemplate $plantilla): array
     {
-        return $request->validate([
-            'fecha' => ['required', 'date'],
-            'hora' => ['nullable', 'date_format:H:i'],
+        $datos = $request->validate([
+            // Una inspeccion no puede registrarse con fecha u hora futura.
+            'fecha' => ['required', 'date', 'before_or_equal:today'],
+            'hora' => ['nullable', 'date_format:H:i', new HoraNoFutura($request->input('fecha'))],
             'machine_id' => ['nullable', 'exists:machines,id'],
-            'operador' => ['nullable', 'string', 'max:120'],
-            'responsable' => ['nullable', 'string', 'max:120'],
+            'operador' => ['nullable', 'string', 'max:120', new NombrePersona],
             'turno' => ['nullable', Rule::in(['Dia', 'Noche'])],
-            'total_unidades' => ['nullable', 'integer', 'min:0', 'max:1000000'],
-            'total_falladas' => ['nullable', 'integer', 'min:0', 'max:1000000', 'lte:total_unidades'],
+            'total_unidades' => ['nullable', 'integer', 'min:0', 'max:10000000'],
+            'total_falladas' => ['nullable', 'integer', 'min:0', 'max:10000000', 'lte:total_unidades'],
             'observacion' => ['nullable', 'string', 'max:2000'],
             'observacion_interna' => ['nullable', 'string', 'max:2000'],
             // Vacio = usar la sugerencia del sistema.
@@ -338,12 +346,21 @@ class InspectionController extends Controller
             'm.*' => ['array'],
             'm.*.*' => ['nullable', 'string', 'max:40'],
         ], [
+            'fecha.before_or_equal' => 'La fecha no puede ser posterior a hoy.',
             'total_falladas.lte' => 'Las unidades falladas no pueden superar el total de unidades.',
         ], [
             'machine_id' => 'maquina',
+            'operador' => 'nombre del operador',
             'total_unidades' => 'total de unidades',
             'total_falladas' => 'unidades falladas',
             'observacion_interna' => 'observacion interna',
         ]);
+
+        // El responsable de Control de Calidad es siempre el usuario que firma
+        // la carga: no se elige a mano, para que la boleta no pueda atribuirse
+        // a otra persona.
+        $datos['responsable'] = $request->user()->nombre_completo;
+
+        return $datos;
     }
 }

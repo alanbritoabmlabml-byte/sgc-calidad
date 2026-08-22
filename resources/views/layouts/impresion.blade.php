@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('titulo', 'Boleta de inspeccion') &middot; {{ config('app.name') }}</title>
     @vite(['resources/css/app.css'])
+    {{-- Cada vista de impresion define su propio tamano de pagina --}}
+    @stack('estilos')
 </head>
 <body class="antialiased text-slate-800">
 

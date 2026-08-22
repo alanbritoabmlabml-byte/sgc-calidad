@@ -36,7 +36,7 @@ class TestParameter extends Model
         'test_template_id', 'code', 'label', 'unit', 'tipo', 'grupo',
         'spec_modo', 'spec_min', 'spec_max', 'spec_objetivo',
         'spec_tolerancia', 'spec_tolerancia_pct', 'spec_label', 'spec_desde_producto',
-        'muestras', 'promediar', 'opciones', 'orden', 'requerido',
+        'muestras', 'promediar', 'opciones', 'orden', 'requerido', 'created_by',
     ];
 
     protected function casts(): array

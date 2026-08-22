@@ -64,6 +64,23 @@ class FlujoInspeccionTest extends TestCase
         return Lot::latest('id')->firstOrFail();
     }
 
+    /**
+     * Cabecera completa de una inspeccion. Desde que la emision exige que no
+     * falte ningun dato, casi toda prueba necesita una cabecera llena.
+     *
+     * @return array<string, mixed>
+     */
+    private function cabecera(array $extra = []): array
+    {
+        return array_merge([
+            'fecha' => '2026-08-13',
+            'hora' => '11:15',
+            'machine_id' => Machine::where('code', 'T-2')->value('id'),
+            'operador' => 'Moises Gongora',
+            'turno' => 'Dia',
+        ], $extra);
+    }
+
     /** Mediciones de Tejido del 13-08: gramaje 62 (fuera de 64-68) y el resto dentro. */
     private function medicionesTejido(array $sobreescribir = []): array
     {
@@ -134,7 +151,7 @@ class FlujoInspeccionTest extends TestCase
 
         $this->actingAs($this->calidad)
             ->post(route('inspecciones.store', [$lote, $tejido]), [
-                'fecha' => '2026-08-13',
+                ...$this->cabecera(),
                 'hora' => '11:15',
                 'machine_id' => Machine::where('code', 'T-2')->value('id'),
                 'operador' => 'Moises Gongora',
@@ -167,7 +184,7 @@ class FlujoInspeccionTest extends TestCase
 
         $this->actingAs($this->calidad)
             ->post(route('inspecciones.store', [$lote, $this->proceso('IT')]), [
-                'fecha' => '2026-08-13',
+                ...$this->cabecera(),
                 'm' => $this->medicionesTejido(['gramaje' => 66]),
             ])
             ->assertRedirect();
@@ -186,7 +203,7 @@ class FlujoInspeccionTest extends TestCase
 
         $this->actingAs($this->calidad)
             ->post(route('inspecciones.store', [$lote, $this->proceso('IT')]), [
-                'fecha' => '2026-08-13',
+                ...$this->cabecera(),
                 'm' => $this->medicionesTejido(),
             ])
             ->assertRedirect();
@@ -200,7 +217,7 @@ class FlujoInspeccionTest extends TestCase
 
         $this->actingAs($this->calidad)
             ->post(route('inspecciones.store', [$lote, $this->proceso('IT')]), [
-                'fecha' => '2026-08-13',
+                ...$this->cabecera(),
                 'estado' => Inspection::RECHAZADO,
                 'm' => $this->medicionesTejido(),
             ])
@@ -222,7 +239,7 @@ class FlujoInspeccionTest extends TestCase
 
         $this->actingAs($this->calidad)
             ->post(route('inspecciones.store', [$rollo, $this->proceso('IT')]), [
-                'fecha' => '2026-08-13',
+                ...$this->cabecera(),
                 'm' => $this->medicionesTejido(['gramaje' => 66]),
             ])
             ->assertRedirect();
@@ -248,7 +265,7 @@ class FlujoInspeccionTest extends TestCase
 
         $this->actingAs($this->calidad)
             ->post(route('inspecciones.store', [$rollo, $this->proceso('IT')]), [
-                'fecha' => '2026-08-13',
+                ...$this->cabecera(),
                 'm' => $this->medicionesTejido(['gramaje' => 66]),
             ]);
 
@@ -264,7 +281,7 @@ class FlujoInspeccionTest extends TestCase
 
         $this->actingAs($this->calidad)
             ->post(route('inspecciones.store', [$bolsas, $corte]), [
-                'fecha' => '2026-08-13',
+                ...$this->cabecera(),
                 'total_unidades' => 2598,
                 'total_falladas' => 61,
                 // 65 +-1 sobre el ancho nominal del producto.
@@ -282,7 +299,7 @@ class FlujoInspeccionTest extends TestCase
 
         $this->actingAs($this->calidad)
             ->post(route('inspecciones.store', [$rollo, $this->proceso('IT')]), [
-                'fecha' => '2026-08-13',
+                ...$this->cabecera(),
                 'estado' => Inspection::RECHAZADO,
                 'm' => $this->medicionesTejido(),
             ]);
@@ -299,7 +316,7 @@ class FlujoInspeccionTest extends TestCase
 
         $this->actingAs($this->calidad)
             ->post(route('inspecciones.store', [$lote, $this->proceso('IT')]), [
-                'fecha' => '2026-08-13',
+                ...$this->cabecera(),
                 'observacion' => 'Variacion de gramaje en la muestra',
                 'observacion_interna' => 'Revisar calibracion del telar T-2',
                 'm' => $this->medicionesTejido(),
@@ -333,7 +350,7 @@ class FlujoInspeccionTest extends TestCase
 
         $this->actingAs($this->calidad)
             ->post(route('inspecciones.store', [$lote, $this->proceso('IT')]), [
-                'fecha' => '2026-08-13',
+                ...$this->cabecera(),
                 'm' => $this->medicionesTejido(),
             ]);
 
@@ -355,7 +372,7 @@ class FlujoInspeccionTest extends TestCase
 
         $this->actingAs($this->calidad)
             ->post(route('inspecciones.store', [$lote, $this->proceso('IT')]), [
-                'fecha' => '2026-08-13',
+                ...$this->cabecera(),
                 'estado' => Inspection::PENDIENTE,
                 'm' => $this->medicionesTejido(),
             ]);
@@ -381,7 +398,7 @@ class FlujoInspeccionTest extends TestCase
 
         $this->actingAs($this->calidad)
             ->post(route('inspecciones.store', [$lote, $this->proceso('IT')]), [
-                'fecha' => '2026-08-13',
+                ...$this->cabecera(),
                 'm' => $this->medicionesTejido(),
             ]);
 
@@ -409,7 +426,7 @@ class FlujoInspeccionTest extends TestCase
 
         $this->actingAs($this->calidad)
             ->post(route('inspecciones.store', [$lote, $this->proceso('IT')]), [
-                'fecha' => '2026-08-13',
+                ...$this->cabecera(),
                 'm' => $this->medicionesTejido(),
             ]);
 
@@ -445,15 +462,71 @@ class FlujoInspeccionTest extends TestCase
         $this->actingAs($lectura)->get(route('lotes.show', $lote))->assertOk();
     }
 
-    public function test_la_configuracion_es_solo_para_administradores(): void
+    /**
+     * Calidad puede ver y crear plantillas, pero no modificarlas ni eliminarlas:
+     * una especificacion vigente no se retoca, se crea una revision nueva.
+     */
+    public function test_calidad_puede_crear_plantillas_pero_no_modificarlas(): void
     {
+        $plantilla = $this->proceso('IT')->activeTemplate;
+
+        // Ver y crear: si.
+        $this->actingAs($this->calidad)->get(route('admin.plantillas.index'))->assertOk();
+        $this->actingAs($this->calidad)->get(route('admin.plantillas.show', $plantilla))->assertOk();
+        $this->actingAs($this->calidad)->get(route('admin.plantillas.create'))->assertOk();
+
+        // Modificar y eliminar: no.
         $this->actingAs($this->calidad)
-            ->get(route('admin.plantillas.index'))
+            ->put(route('admin.plantillas.update', $plantilla), [
+                'process_id' => $plantilla->process_id,
+                'name' => 'Otro nombre',
+                'revision' => '9',
+                'muestras_max' => 13,
+                'muestras_default' => 8,
+            ])
             ->assertForbidden();
 
-        $admin = User::factory()->create(['role' => User::ADMIN, 'active' => true]);
+        $parametro = $plantilla->parameters()->first();
 
-        $this->actingAs($admin)->get(route('admin.plantillas.index'))->assertOk();
+        $this->actingAs($this->calidad)
+            ->delete(route('admin.parametros.destroy', $parametro))
+            ->assertForbidden();
+    }
+
+    public function test_la_gestion_de_usuarios_es_solo_del_administrador(): void
+    {
+        $this->actingAs($this->calidad)->get(route('admin.usuarios.index'))->assertForbidden();
+
+        $admin = User::factory()->create(['role' => User::ADMIN, 'active' => true]);
+        $this->actingAs($admin)->get(route('admin.usuarios.index'))->assertOk();
+    }
+
+    /** Gerencia solo mira: tableros, inspecciones y boletas. */
+    public function test_gerencia_solo_consulta(): void
+    {
+        $gerencia = User::factory()->create(['role' => User::GERENCIA, 'active' => true]);
+        $lote = $this->crearLote();
+
+        // Puede ver.
+        $this->actingAs($gerencia)->get(route('gerencia'))->assertOk();
+        $this->actingAs($gerencia)->get(route('lotes.index'))->assertOk();
+        $this->actingAs($gerencia)->get(route('lotes.show', $lote))->assertOk();
+        $this->actingAs($gerencia)->get(route('inspecciones.index'))->assertOk();
+
+        // No puede cargar nada ni emitir.
+        $this->actingAs($gerencia)->get(route('lotes.create'))->assertForbidden();
+        $this->actingAs($gerencia)
+            ->get(route('inspecciones.create', [$lote, $this->proceso('IT')]))
+            ->assertForbidden();
+    }
+
+    /** El tablero gerencial no es para todos. */
+    public function test_el_tablero_gerencial_requiere_su_permiso(): void
+    {
+        $this->actingAs($this->calidad)->get(route('gerencia'))->assertForbidden();
+
+        $gerencia = User::factory()->create(['role' => User::GERENCIA, 'active' => true]);
+        $this->actingAs($gerencia)->get(route('gerencia'))->assertOk();
     }
 
     public function test_un_usuario_desactivado_no_puede_ingresar(): void

@@ -13,11 +13,12 @@ class TestTemplate extends Model
 
     protected $fillable = [
         'process_id', 'name', 'revision', 'muestras_default', 'muestras_max', 'active',
+        'created_by', 'activada_at', 'activada_por',
     ];
 
     protected function casts(): array
     {
-        return ['active' => 'boolean'];
+        return ['active' => 'boolean', 'activada_at' => 'datetime'];
     }
 
     public function process(): BelongsTo
@@ -35,6 +36,16 @@ class TestTemplate extends Model
         return $this->hasMany(Inspection::class);
     }
 
+    public function creador(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function activadaPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'activada_por');
+    }
+
     public function getNombreCompletoAttribute(): string
     {
         return "{$this->name} (Rev:{$this->revision})";
@@ -43,13 +54,21 @@ class TestTemplate extends Model
     /**
      * Activa esta plantilla y desactiva las demas del mismo proceso.
      * Las inspecciones ya emitidas conservan la plantilla con la que se llenaron.
+     *
+     * Se registra quien y cuando: activar una revision cambia la especificacion
+     * contra la que se va a evaluar de aca en adelante, y eso tiene que quedar
+     * atribuido a una persona.
      */
-    public function activar(): void
+    public function activar(?User $usuario = null): void
     {
         static::where('process_id', $this->process_id)
             ->whereKeyNot($this->getKey())
             ->update(['active' => false]);
 
-        $this->update(['active' => true]);
+        $this->update([
+            'active' => true,
+            'activada_at' => now(),
+            'activada_por' => $usuario?->id ?? $this->activada_por,
+        ]);
     }
 }

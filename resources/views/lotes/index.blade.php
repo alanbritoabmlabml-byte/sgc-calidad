@@ -10,7 +10,7 @@
                 {{ $lotes->total() }} {{ Str::plural('lote', $lotes->total()) }} &middot; cada lote se inspecciona proceso por proceso
             </p>
         </div>
-        @if (auth()->user()->puedeEditar())
+        @if (auth()->user()->puede('lotes.crear'))
             <a href="{{ route('lotes.create') }}" class="btn-primario">Nuevo lote</a>
         @endif
     </div>
