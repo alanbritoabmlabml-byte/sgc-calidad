@@ -395,44 +395,42 @@ certificado de un producto vendido: no puede salir con campos en blanco.
 
 ### Boleta en media carta
 
-Formato **107,95 × 279,4 mm** (4,25 × 11 pulgadas): una hoja carta cortada por la
-mitad **a lo largo**. Con 6 mm de margen quedan **95,95 mm de ancho útil**.
+Formato **215,9 × 139,7 mm** (8,5 × 5,5 pulgadas) **apaisada**: una hoja carta
+cortada por la mitad **a lo ancho**, con el lado ancho arriba. Salen dos boletas
+por hoja carta, una arriba y una abajo.
 
-Tres firmas, apiladas una debajo de la otra: operador, responsable de Control de
-Calidad y **supervisor de turno / jefe de producción**. Van apiladas porque tres
-firmas lado a lado en 96 mm quedarían de 32 mm cada una, que no alcanza para
-firmar.
+Conserva el **ancho completo de la carta**: con 6 mm de margen quedan 203,9 mm
+útiles, así que nada se comprime horizontalmente. Por eso la tabla de resultados
+va con las **muestras como columnas**, igual que en la planilla de Excel:
+
+```
+ Característica    │ Especif. │ M1   │ M2   │ … │ M13  │ Promedio │ Veredicto
+ Ancho (cm)        │ ± 1      │ 65,4 │ 65,5 │ … │ 65,5 │ 65,63    │ Conforme
+ Largo útil (cm)   │ ± 1      │103,9 │103,5 │ … │104,0 │ 103,85   │ Conforme
+ Peso (g)          │ ± 3 %    │ 95,8 │96,07 │ … │ 90,7 │ 96,30    │ Fuera spec.
+ Corte             │ B        │ B    │ B    │ … │ B    │ B        │ Conforme
+ Costura (cm)      │ 2 a 3    │ 2,5  │ 2,6  │ … │ 2,6  │ 2,53     │ Conforme
+```
+
+Con 13 muestras son 17 columnas: 32,8 mm para el nombre de la característica y
+9,5 mm por muestra. **Ese es el límite del ancho**: si se agrega una columna más,
+la tabla se desborda del papel. Hay una prueba automatizada que lo fija
+(`test_la_boleta_soporta_el_caso_maximo_de_trece_muestras`).
+
+Lo escaso pasa a ser el **alto** (127,7 mm útiles), así que el contenido se
+organiza en bandas horizontales: encabezado con la marca y el estado, luego la
+identificación en seis columnas, la tabla, las observaciones en dos columnas y
+las firmas.
+
+Tres firmas lado a lado, a 66 mm cada una: operador, responsable de Control de
+Calidad y **supervisor de turno / jefe de producción**.
 
 El estado se escribe completo: `PRODUCTO CONFORME`, `PRODUCTO CON OBSERVACIÓN`,
 `PRODUCTO NO CONFORME`.
 
-#### La tabla de resultados se transpone
-
-Ese ancho obliga a un cambio de fondo. La tabla original de Corte y Costura tiene
-17 columnas —característica, especificación, M1 a M13, promedio y veredicto— y a
-5,6 mm por columna no se lee nada.
-
-La solución no es comprimir sino **transponer**: cuando el ensayo tiene varias
-muestras, las muestras pasan a ser **filas** y las características **columnas**.
-
-```
- Muestra │ Ancho │ Largo útil │ Peso  │ Corte │ Costura
- Especif.│ ± 1   │ ± 1        │ ± 3 % │ B     │ 2 a 3
- M 1     │ 65,4  │ 103,9      │ 95,8  │ B     │ 2,5
- M 2     │ 65,5  │ 103,5      │ 96,07 │ B     │ 2,6
- …
- Prom.   │ 65,63 │ 103,85     │ 96,30 │ B     │ 2,53
- Vered.  │ Conf. │ Conf.      │ Fuera │ Conf. │ Conf.
-```
-
-Cinco características entran cómodas en 96 mm y hay 267 mm de alto de sobra para
-13 filas. De paso se lee mejor: el inspector recorre una columna hacia abajo, en
-el mismo orden en que mide.
-
-En Tejido, donde cada característica tiene un solo valor, la tabla queda como una
-lista de característica / especificación / resultado / veredicto. El certificado
-del cliente usa siempre esa forma compacta, porque no muestra las muestras
-individuales.
+En Tejido, donde cada característica tiene un solo valor, la tabla no lleva
+columnas de muestra. El certificado del cliente tampoco: muestra solo
+característica, especificación, promedio y veredicto.
 
 ### Etiquetas para impresora térmica Zebra
 

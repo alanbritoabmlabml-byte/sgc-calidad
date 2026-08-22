@@ -319,6 +319,77 @@ class ValidacionesTest extends TestCase
         $this->assertSame((float) FormatoEtiqueta::MIN_MM, $minimo['alto']);
     }
 
+    /**
+     * La boleta es media carta apaisada: 215,9 x 139,7 mm, con 203,9 mm de ancho
+     * util. Con 13 muestras la tabla llega a 17 columnas (caracteristica,
+     * especificacion, M1 a M13, promedio y veredicto). Es el caso limite del
+     * ancho: si alguien agrega una columna mas, la tabla se desborda del papel.
+     */
+    public function test_la_boleta_soporta_el_caso_maximo_de_trece_muestras(): void
+    {
+        $lote = $this->crearLote();
+
+        // Corte y Costura no se habilita sin Tejido aprobado.
+        $tejido = $this->proceso('IT');
+        $mTejido = [];
+
+        foreach ($tejido->activeTemplate->parameters as $p) {
+            $mTejido[$p->id] = [1 => '66'];
+        }
+
+        $this->actingAs($this->calidad)
+            ->post(route('inspecciones.store', [$lote, $tejido]), [
+                'fecha' => today()->format('Y-m-d'),
+                'hora' => '07:00',
+                'machine_id' => Machine::where('code', 'T-2')->value('id'),
+                'operador' => 'Moises Gongora',
+                'm' => $mTejido,
+            ])
+            ->assertRedirect();
+
+        $corte = $this->proceso('ICC');
+        $plantilla = $corte->activeTemplate;
+
+        $this->assertSame(13, $plantilla->muestras_max);
+
+        $m = [];
+
+        foreach ($plantilla->parameters as $p) {
+            for ($n = 1; $n <= 13; $n++) {
+                $m[$p->id][$n] = $p->tipo === 'select' ? 'B' : '65.4';
+            }
+        }
+
+        $this->actingAs($this->calidad)
+            ->post(route('inspecciones.store', [$lote, $corte]), [
+                'fecha' => today()->format('Y-m-d'),
+                'hora' => '07:30',
+                'machine_id' => Machine::where('code', 'MK-1')->value('id'),
+                'operador' => 'Javier Pastedo',
+                'total_unidades' => 2598,
+                'total_falladas' => 61,
+                'm' => $m,
+            ])
+            ->assertRedirect();
+
+        $inspeccion = Inspection::latest('id')->firstOrFail();
+
+        $this->assertSame(13, (int) $inspeccion->measurements->max('muestra'));
+
+        $html = $this->actingAs($this->calidad)
+            ->get(route('inspecciones.show', $inspeccion))
+            ->assertOk()
+            ->getContent();
+
+        // Las trece cabeceras de muestra tienen que estar impresas.
+        for ($n = 1; $n <= 13; $n++) {
+            $this->assertStringContainsString(">M{$n}<", $html, "Falta la columna M{$n} en la boleta.");
+        }
+
+        // Y el tamano de pagina tiene que ser el de media carta apaisada.
+        $this->assertStringContainsString('size: 215.9mm 139.7mm', $html);
+    }
+
     public function test_una_boleta_sin_emitir_no_genera_etiquetas(): void
     {
         $lote = $this->crearLote();
