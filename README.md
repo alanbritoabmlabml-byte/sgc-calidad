@@ -344,3 +344,102 @@ recuadro "ESTADO DE INSPECCION" es una caja vacía que se completa a mano. En el
 sistema ese recuadro contiene el veredicto (`P.C` / `P.OBS` / `RECHAZADO`), la
 tabla de resultados con su especificación y la observación. Un certificado que va
 a un cliente necesita mostrar contra qué se midió, no solo el resultado.
+
+---
+
+## 11. Segunda versión
+
+### Identidad de marca
+
+Logo de Plásticos Carmen reconstruido en **SVG vectorial** y aplicado en login,
+barra superior, boleta, certificado y etiquetas. Paleta del sistema sobre los
+colores de la marca: azul `#0F3C91`, azul oscuro `#0B2A5E`, rojo `#E4121C`.
+
+> **Para usar el archivo oficial** en lugar de la reconstrucción, copiá el logo a
+> `public/img/logo-pc.svg` (o `.png`). El componente lo detecta y lo usa
+> automáticamente en todas las pantallas y en la boleta impresa. La versión con
+> el texto "PLÁSTICOS CARMEN" va en `public/img/logo-pc-completo.svg`.
+
+### Permisos por módulo
+
+La autorización pasó de rol a **permiso**: 20 permisos agrupados en 7 módulos.
+El rol define un punto de partida y el administrador ajusta cada casilla desde
+*Configuración → Usuarios*.
+
+| Rol | Alcance |
+|---|---|
+| Administrador | Todo, incluida la configuración y los usuarios |
+| Control de Calidad | Lotes, inspecciones, emisión, etiquetas y **creación** de plantillas |
+| Gerencia | Solo consulta: tableros, inspecciones y boletas |
+| Solo lectura | Consulta de la operación y reimpresión |
+
+**Calidad puede crear plantillas de ensayo pero no modificarlas ni eliminarlas.**
+Es a propósito: una especificación vigente no se retoca, porque cambiaría cómo se
+leen las boletas ya emitidas. Para cambiar una tolerancia se usa *Crear revisión
+nueva*. Queda registrado quién creó cada revisión y quién la puso vigente, con
+fecha y hora.
+
+### La boleta no se emite incompleta
+
+Antes de emitir, el sistema verifica que no falte ningún dato: hora, máquina,
+operador, responsable, código de producto, N° de tarjeta, cantidades donde el
+proceso las lleva, y **cada una de las mediciones**. Si falta algo, la pantalla
+lista exactamente qué y el botón queda deshabilitado. Una boleta emitida es el
+certificado de un producto vendido: no puede salir con campos en blanco.
+
+### Boleta en media carta
+
+Formato **139,7 × 215,9 mm** (media carta vertical), con tres firmas: operador,
+responsable de Control de Calidad y **supervisor de turno / jefe de producción**.
+El estado se escribe completo: `PRODUCTO CONFORME`, `PRODUCTO CON OBSERVACIÓN`,
+`PRODUCTO NO CONFORME`.
+
+### Etiquetas para impresora térmica Zebra
+
+| Formato | Uso |
+|---|---|
+| **50 × 30 mm** | El más usado para rollos y fardos |
+| **40 × 25 mm** | Formato chico |
+| **Personalizable** | Ancho y alto en mm, entre 20 y 210 |
+| Hoja A4 | Varias etiquetas por hoja, impresora de oficina |
+
+En los formatos térmicos, cada etiqueta es una página del tamaño exacto del
+rollo, así la impresora corta donde debe. El QR escala en milímetros. La etiqueta
+lleva logo, **nombre del producto con su gramaje**, lote, fecha y hora, máquina y
+operador. Por defecto imprime **5**.
+
+### Validaciones de carga
+
+- La fecha de corte no puede ser posterior a hoy, y la hora no puede ser
+  posterior a la hora actual cuando la fecha es hoy.
+- Los campos de nombre rechazan números y símbolos, pero aceptan **ñ**, tildes,
+  apóstrofo y guion (`María Ñuñez`, `Ana García-López`, `Juan D'Angelo`).
+- El **responsable de Control de Calidad** se toma del usuario con la sesión
+  abierta, no del formulario: la boleta no puede atribuirse a otra persona.
+
+### Ficha técnica del producto
+
+*Configuración → Productos* incorpora norma de referencia, tipo de tejido,
+tratamiento UV, cliente, capacidad en kg, densidades nominales de urdimbre y
+trama, y observaciones técnicas, con sello de quién la actualizó y cuándo. La
+pantalla avisa cuando faltan nominales, porque sin ellos el ensayo no tiene
+especificación contra la que evaluar.
+
+**Alta rápida:** desde el formulario de lote se puede crear un producto o un
+sector sin cambiar de pantalla. Si el código tiene el formato `Bl 65x104/66`, el
+sistema deduce ancho 65, largo 104 y gramaje 66.
+
+### Tablero gerencial
+
+En `/gerencia`, para el rol Gerencia y el administrador: conformidad, aprobación,
+porcentaje de unidades falladas, tendencia mensual de 12 meses y rankings de
+desvíos por característica, por máquina y por producto. Los gráficos son SVG y
+HTML sin librería: se imprimen bien y no dependen de JavaScript.
+
+### Avisos
+
+Campana en la barra superior con contador, y pantalla propia en `/avisos`. El
+caso central es la **boleta cerrada sin emitir**: mientras no se emita, el QR de
+su etiqueta no resuelve y el trabajo no llega al cliente. También avisa de
+inspecciones pendientes de cierre, lotes bloqueados, lotes sin inspección y
+productos con ficha técnica incompleta.

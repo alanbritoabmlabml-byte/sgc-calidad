@@ -229,21 +229,49 @@ Ordenados por lo que bloquea la puesta en producción.
 
 ### Huecos conocidos del sistema
 
-9. **No hay CRUD de sectores ni de procesos.** Se cargan por seeder. Es el
-   siguiente módulo natural si se van a sumar Expandido, Inyección u otros.
+9. **Los procesos no tienen CRUD.** Los sectores sí (`SectorController`), pero
+   los procesos de cada sector se cargan por seeder. Es el hueco más relevante si
+   se van a sumar Expandido, Inyección u otros sectores: hoy hay que copiar
+   `RafiaSeeder` como modelo. Los rótulos de la boleta viven en
+   `processes.etiquetas` (JSON) y también se cargan ahí.
 10. **Al editar una inspección, las mediciones se reemplazan**
     (`InspectionController::update` borra e inserta). Es seguro porque solo se
     puede editar antes de emitir, pero **no queda historial de qué se cambió**.
-    Si Calidad necesita auditoría, hay que agregar versionado de mediciones.
+    Si Calidad necesita auditoría de mediciones, hay que versionarlas. Las
+    plantillas sí registran autoría (`created_by`, `activada_por`, `activada_at`).
 11. **No hay exportación a Excel.** Calidad viene de planillas y es probable que
     la pida para reportes mensuales.
-12. **No hay reportes agregados** más allá del tablero: tendencias por telar, por
-    producto o por operador, Pareto de defectos.
-13. **El PDF se genera imprimiendo desde el navegador** (CSS `@media print`), no
+12. **El PDF se genera imprimiendo desde el navegador** (CSS `@media print`), no
     con una librería. Funciona bien y en cualquier dispositivo. Si se necesita
     generar el PDF del lado del servidor —para adjuntarlo a un correo, por
     ejemplo— hay que sumar algo tipo `dompdf`.
-14. **Sin notificaciones.** Un lote rechazado no avisa a nadie.
+13. **Los avisos no se envían.** `App\Support\Avisos` se calcula y se muestra en
+    la campana y en `/avisos`, pero nadie recibe un correo. Si hace falta, el
+    lugar natural es un comando programado que consulte esa misma clase.
+14. **El logo es una reconstrucción**, no el archivo oficial. Ver
+    `resources/views/components/logo.blade.php`: si se copia el oficial a
+    `public/img/logo-pc.svg`, el componente lo usa en todas las pantallas.
+
+### Piezas nuevas que conviene conocer
+
+| Archivo | Qué resuelve |
+|---|---|
+| `app/Support/Permisos.php` | Catálogo de permisos por módulo y presets por rol |
+| `app/Http/Middleware/Permiso.php` | Autoriza por permiso; falla ruidosamente ante un permiso inexistente |
+| `app/Support/Avisos.php` | Lo que quedó a medio camino (boletas sin emitir, etc.) |
+| `app/Support/FormatoEtiqueta.php` | Formatos de etiqueta Zebra y personalizable |
+| `app/Support/UrlPublica.php` | Valida que `APP_URL` sirva para imprimir QR |
+| `app/Rules/NombrePersona.php` | Nombres sin números, con ñ y tildes |
+| `app/Rules/HoraNoFutura.php` | La hora de hoy no puede ser futura |
+| `Inspection::datosFaltantes()` | Qué falta para poder emitir la boleta |
+
+**Cuidado con el orden de rutas:** `/plantillas/nueva` tiene que declararse antes
+de `/plantillas/{plantilla}`. Ya pasó una vez: "nueva" se tomaba como
+identificador de plantilla y la ruta devolvía 404.
+
+**Cuidado con Blade:** una directiva pegada a una palabra no se reconoce.
+`más@endif` deja el `@if` sin cerrar y la vista revienta con "unexpected end of
+file". Siempre un espacio antes de `@endif`.
 
 ### Un hallazgo que conviene resolver con Calidad
 
