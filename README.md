@@ -395,10 +395,44 @@ certificado de un producto vendido: no puede salir con campos en blanco.
 
 ### Boleta en media carta
 
-Formato **139,7 × 215,9 mm** (media carta vertical), con tres firmas: operador,
-responsable de Control de Calidad y **supervisor de turno / jefe de producción**.
+Formato **107,95 × 279,4 mm** (4,25 × 11 pulgadas): una hoja carta cortada por la
+mitad **a lo largo**. Con 6 mm de margen quedan **95,95 mm de ancho útil**.
+
+Tres firmas, apiladas una debajo de la otra: operador, responsable de Control de
+Calidad y **supervisor de turno / jefe de producción**. Van apiladas porque tres
+firmas lado a lado en 96 mm quedarían de 32 mm cada una, que no alcanza para
+firmar.
+
 El estado se escribe completo: `PRODUCTO CONFORME`, `PRODUCTO CON OBSERVACIÓN`,
 `PRODUCTO NO CONFORME`.
+
+#### La tabla de resultados se transpone
+
+Ese ancho obliga a un cambio de fondo. La tabla original de Corte y Costura tiene
+17 columnas —característica, especificación, M1 a M13, promedio y veredicto— y a
+5,6 mm por columna no se lee nada.
+
+La solución no es comprimir sino **transponer**: cuando el ensayo tiene varias
+muestras, las muestras pasan a ser **filas** y las características **columnas**.
+
+```
+ Muestra │ Ancho │ Largo útil │ Peso  │ Corte │ Costura
+ Especif.│ ± 1   │ ± 1        │ ± 3 % │ B     │ 2 a 3
+ M 1     │ 65,4  │ 103,9      │ 95,8  │ B     │ 2,5
+ M 2     │ 65,5  │ 103,5      │ 96,07 │ B     │ 2,6
+ …
+ Prom.   │ 65,63 │ 103,85     │ 96,30 │ B     │ 2,53
+ Vered.  │ Conf. │ Conf.      │ Fuera │ Conf. │ Conf.
+```
+
+Cinco características entran cómodas en 96 mm y hay 267 mm de alto de sobra para
+13 filas. De paso se lee mejor: el inspector recorre una columna hacia abajo, en
+el mismo orden en que mide.
+
+En Tejido, donde cada característica tiene un solo valor, la tabla queda como una
+lista de característica / especificación / resultado / veredicto. El certificado
+del cliente usa siempre esa forma compacta, porque no muestra las muestras
+individuales.
 
 ### Etiquetas para impresora térmica Zebra
 
