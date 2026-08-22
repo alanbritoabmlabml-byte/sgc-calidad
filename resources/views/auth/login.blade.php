@@ -19,12 +19,19 @@
     {{-- Panel de marca. En celular se reduce a una franja superior. --}}
     <div class="relative overflow-hidden bg-pc-700 px-6 py-10 lg:flex lg:w-1/2 lg:flex-col lg:justify-center lg:px-16 lg:py-0">
 
-        {{-- Marca de agua: la "c" del logo, muy tenue --}}
-        <svg class="pointer-events-none absolute -right-20 -top-16 h-72 w-72 opacity-[0.07] lg:h-[34rem] lg:w-[34rem]"
-             viewBox="0 0 200 118" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M 168.2 69.1 A 31.5 31.5 0 1 1 168.2 20.9"
-                  fill="none" stroke="#ffffff" stroke-width="21"/>
-        </svg>
+        {{--
+            Marca de agua: la marca completa, en blanco y entera.
+
+            Antes habia una "c" dibujada a mano y recortada por el borde, que se
+            leia como una letra suelta sin relacion con la marca. Ahora es el
+            logo oficial pasado a blanco con un filtro (brightness 0 lo vuelve
+            negro conservando la transparencia, invert lo pasa a blanco), a muy
+            baja opacidad y contenido dentro del panel.
+        --}}
+        <div class="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
+            <x-logo variante="marca" alto=""
+                    class="w-[65%] max-w-none opacity-[0.06] [filter:brightness(0)_invert(1)]" />
+        </div>
 
         <div class="relative mx-auto max-w-md text-center lg:mx-0 lg:text-left">
             {{-- El simbolo va sobre una placa blanca: es como se usa la marca sobre fondo de color --}}

@@ -27,11 +27,17 @@
         ->first(fn (string $ruta) => is_file(public_path($ruta)));
 @endphp
 
+@php
+    // Con alto vacio no se impone ninguna medida: la usa quien necesita
+    // dimensionar el logo por su cuenta, como la marca de agua del login.
+    $medida = $alto === '' ? '' : $alto.' w-auto';
+@endphp
+
 @if ($oficial)
     <img src="{{ asset($oficial) }}" alt="Plasticos Carmen"
-         {{ $attributes->merge(['class' => $alto.' w-auto']) }}>
+         {{ $attributes->merge(['class' => $medida]) }}>
 @elseif ($variante === 'completo')
-    <svg {{ $attributes->merge(['class' => $alto.' w-auto']) }}
+    <svg {{ $attributes->merge(['class' => $medida]) }}
          viewBox="0 0 200 168" xmlns="http://www.w3.org/2000/svg" role="img"
          aria-label="Plasticos Carmen">
         {{-- Simbolo --}}
@@ -46,7 +52,7 @@
               font-size="30" font-weight="800" letter-spacing="0.5">PLÁSTICOS CARMEN</text>
     </svg>
 @else
-    <svg {{ $attributes->merge(['class' => $alto.' w-auto']) }}
+    <svg {{ $attributes->merge(['class' => $medida]) }}
          viewBox="0 0 200 118" xmlns="http://www.w3.org/2000/svg" role="img"
          aria-label="Plasticos Carmen">
         {{-- Bowl de la "p" --}}
