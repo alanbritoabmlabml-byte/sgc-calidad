@@ -15,6 +15,23 @@ class UrlPublica
     /** Direcciones que solo resuelven en el propio equipo. */
     private const LOCALES = ['localhost', '127.0.0.1', '::1', '0.0.0.0'];
 
+    /**
+     * Dominios de tuneles de prueba. Son alcanzables desde internet, pero la
+     * direccion cambia en cada arranque y desaparece al cerrar el tunel: sirven
+     * para probar, nunca para imprimir una etiqueta que se pega a un fardo.
+     */
+    private const TEMPORALES = [
+        'trycloudflare.com',
+        'ngrok.io',
+        'ngrok-free.app',
+        'ngrok.app',
+        'loca.lt',
+        'localhost.run',
+        'serveo.net',
+        'devtunnels.ms',
+        'bore.pub',
+    ];
+
     public static function url(): string
     {
         return (string) config('app.url');
@@ -65,6 +82,23 @@ class UrlPublica
         return $host !== '' && ! str_contains($host, '.');
     }
 
+    /**
+     * La direccion es de un tunel de prueba: funciona ahora, pero cambia en el
+     * proximo arranque y muere al cerrar el tunel.
+     */
+    public static function esTemporal(): bool
+    {
+        $host = mb_strtolower(self::host());
+
+        foreach (self::TEMPORALES as $dominio) {
+            if ($host === $dominio || str_ends_with($host, '.'.$dominio)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /** Sin HTTPS, el celular del cliente muestra advertencias de seguridad. */
     public static function esSinCifrado(): bool
     {
@@ -82,6 +116,12 @@ class UrlPublica
         if (self::esRedInterna()) {
             return 'apunta a una direccion de la red interna, asi que la etiqueta solo '
                 .'funciona dentro de la empresa: un cliente con datos moviles no va a poder abrirla';
+        }
+
+        if (self::esTemporal()) {
+            return 'es la direccion de un tunel de prueba: funciona ahora, pero cambia en el '
+                .'proximo arranque y deja de existir al cerrar el tunel, asi que el QR impreso '
+                .'quedaria apuntando a la nada';
         }
 
         return null;

@@ -65,11 +65,42 @@ class UrlPublicaTest extends TestCase
     }
 
     /** @return array<string, array{0: string}> */
+    public static function urlsTemporales(): array
+    {
+        return [
+            'quick tunnel de cloudflare' => ['https://expires-experience-oaks-games.trycloudflare.com'],
+            'ngrok' => ['https://a1b2c3.ngrok-free.app'],
+            'localtunnel' => ['https://sgc-calidad.loca.lt'],
+            'dev tunnel de vs code' => ['https://abc123-8000.devtunnels.ms'],
+        ];
+    }
+
+    /**
+     * Un tunel de prueba es alcanzable desde internet, pero su direccion cambia
+     * en cada arranque. Imprimir un QR con ella es justamente el error que esta
+     * verificacion existe para evitar.
+     */
+    #[DataProvider('urlsTemporales')]
+    public function test_rechaza_las_direcciones_de_tuneles_de_prueba(string $url): void
+    {
+        $this->conUrl($url);
+
+        $this->assertTrue(UrlPublica::esTemporal(), "{$url} deberia detectarse como temporal");
+
+        // No es local ni de red interna: el problema es que no es permanente.
+        $this->assertFalse(UrlPublica::esLocal());
+        $this->assertFalse(UrlPublica::esRedInterna());
+
+        $this->assertFalse(UrlPublica::aptaParaImprimir());
+        $this->assertStringContainsString('tunel de prueba', UrlPublica::motivoParaNoImprimir());
+    }
+
+    /** @return array<string, array{0: string}> */
     public static function urlsPublicas(): array
     {
         return [
             'dominio propio' => ['https://calidad.plasticoscarmen.com'],
-            'subdominio de tunel' => ['https://sgc-calidad.trycloudflare.com'],
+            'subdominio propio' => ['https://sgc.calidad.plasticoscarmen.com'],
             'IP publica' => ['https://186.121.10.5'],
         ];
     }
@@ -81,6 +112,7 @@ class UrlPublicaTest extends TestCase
 
         $this->assertFalse(UrlPublica::esLocal());
         $this->assertFalse(UrlPublica::esRedInterna());
+        $this->assertFalse(UrlPublica::esTemporal());
         $this->assertTrue(UrlPublica::aptaParaImprimir(), "{$url} deberia aceptarse");
         $this->assertNull(UrlPublica::motivoParaNoImprimir());
     }
