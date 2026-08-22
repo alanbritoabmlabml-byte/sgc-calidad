@@ -11,6 +11,9 @@ así que agregar Expandido, Inyección u otro sector no requiere programar.
 - **Responsive:** computadora, tablet y celular
 - **QR:** SVG vectorial (`bacon/bacon-qr-code`), sin depender de extensiones de imagen
 
+
+> **¿Vas a desarrollar sobre esto?** Empezá por **[ONBOARDING.md](ONBOARDING.md)**.
+
 ---
 
 ## 1. Puesta en marcha
